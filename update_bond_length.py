@@ -31,7 +31,7 @@ final_array = np.zeros((unrefined.shape[0],unrefined.shape[1]))
 
 
 bond_index = 0
-for residue in range(0,19764,12):
+for residue in range(0,unrefined.shape[1],12):
     current_array = unrefined[:,residue:residue+12]
     CB = current_array[:,:3]
     updated_N = set_bond_length(CB,current_array[:,3:6],yhat[:,bond_index].reshape(100,1))
