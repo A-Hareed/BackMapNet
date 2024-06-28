@@ -30,7 +30,7 @@ def get_df(arr):
 # PDB_XYZ = 'predicted_str_arr_long_E16.npy'
 # PDB_XYZ = 'sims_forces/atomic_prediction.npy'
 
-PDB_XYZ = 'pred_refined_2000.npy'
+PDB_XYZ = 'arr_reconstructed_protein.npy'
 
 
 predicted_str = np.load(PDB_XYZ)
@@ -130,7 +130,7 @@ for i in predicted_str:
 
 # with open('predicted_500_pdbs_using_E16.pdb', 'w') as f:
 # with open('atomic_LSTM.pdb', 'w') as f:
-with open('atomic_actual_refined_keras.pdb', 'w') as f:
+with open('atomic_all_reconstructed.pdb', 'w') as f:
     f.write(pdb_out)
 
 
