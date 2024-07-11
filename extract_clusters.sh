@@ -20,6 +20,8 @@ for cluster_info in "${clusters_array[@]}"; do
     mkdir -p cluster_${cluster_id}
     for frame in $frames; do
         echo 1 | gmx trjconv -s md_0_1.tpr -f fitted_protein.xtc -o cluster_${cluster_id}/frame_${frame}.pdb -dump $frame
+        gzip cluster_backbone_${cluster_id}/frame_${frame}.pdb > cluster_backbone_${cluster_id}/frame_${frame}.pdb.gz
+        rm cluster_backbone_${cluster_id}/frame_${frame}.pdb
         done
 done
 
