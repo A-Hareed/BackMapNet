@@ -17,11 +17,17 @@ IFS=$'\n' read -rd '' -a clusters_array <<< "$clusters"
 for cluster_info in "${clusters_array[@]}"; do
     cluster_id=$(echo $cluster_info | cut -d':' -f1 | cut -d' ' -f2)
     frames=$(echo $cluster_info | cut -d':' -f2 | tr -d '[],')
-    mkdir -p cluster_${cluster_id}
+    mkdir -p cluster_backbone_${cluster_id}
     for frame in $frames; do
-        echo 1 | gmx trjconv -s md_0_1.tpr -f fitted_protein.xtc -o cluster_${cluster_id}/frame_${frame}.pdb -dump $frame
-        gzip cluster_backbone_${cluster_id}/frame_${frame}.pdb > cluster_backbone_${cluster_id}/frame_${frame}.pdb.gz
-        rm cluster_backbone_${cluster_id}/frame_${frame}.pdb
-        done
-done
 
+        output_file="cluster_backbone_${cluster_id}/frame_${frame}.pdb"
+        if [ ! -f "$output_file" ]; then
+            echo 4 | gmx trjconv -s md_0_1.tpr -f fitted_protein.xtc -o "$output_file" -dump $frame 2>&1 | tee -a gromacs.log
+            if [ $? -ne 0 ]; then
+                echo "Error processing frame $frame for cluster $cluster_id" >> gromacs.log
+            fi
+        else
+            echo "File $output_file already exists. Skipping frame $frame for cluster $cluster_id." >> gromacs2.log 2>&1
+        fi
+    done
+done
