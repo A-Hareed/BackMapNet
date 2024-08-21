@@ -130,7 +130,7 @@ def create_model_2(input_shape, num_outputs):
     model = tf.keras.Model(inputs=inputs, outputs=output)
     return model
 
-# Example usage:
+
 input_shape = (12,)  # Example input shape, adjust based on your actual data
 output_num = 48  # Example number of bins, adjust based on your actual data
 
@@ -161,3 +161,55 @@ model.save(f'model_dnn_2{sytem_naming}.keras')
 plot_history(history)
 
 
+    # Define the residual block function
+    def residual_block(x, units):
+        shortcut = x
+        x = tf.keras.layers.Dense(units)(x)
+        x = tf.keras.layers.LeakyReLU(alpha=0.2)(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.Dense(units)(x)
+        x = tf.keras.layers.LeakyReLU(alpha=0.2)(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        
+        # If the dimensions do not match, project the shortcut to match the output dimensions
+        if shortcut.shape[-1] != units:
+            shortcut = tf.keras.layers.Dense(units)(shortcut)
+        
+        return tf.keras.layers.add([x, shortcut])
+
+
+    # Define the model creation function
+    def create_model_2(input_shape, num_outputs):
+        inputs = tf.keras.Input(shape=input_shape)
+        regularizer = tf.keras.regularizers.l2(0.01)
+        x = tf.keras.layers.Dense(2048, kernel_regularizer=regularizer)(inputs)
+        x = tf.keras.layers.LeakyReLU(alpha=0.2)(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+
+        x = residual_block(x, 2048)
+        x = residual_block(x, 2048)  # Ensure dimensions match within residual blocks
+        x = residual_block(x, 1024)  # Ensure dimensions match within residual blocks
+        x = tf.keras.layers.Dropout(0.2)(x)
+        
+        x = residual_block(x, 512)  # Ensure dimensions match within residual blocks
+        x = tf.keras.layers.Dropout(0.2)(x)
+        
+        x = residual_block(x, 256)  # Ensure dimensions match within residual blocks
+        x = tf.keras.layers.Dropout(0.2)(x)
+
+        x = residual_block(x, 256)  # Ensure dimensions match within residual blocks
+        x = tf.keras.layers.Dropout(0.2)(x)
+
+        x = residual_block(x, 128)  # Ensure dimensions match within residual blocks
+        x = tf.keras.layers.Dropout(0.2)(x)
+
+        x = residual_block(x, 128)  # Ensure dimensions match within residual blocks
+        x = tf.keras.layers.Dropout(0.2)(x)
+
+        x = residual_block(x, 64)  # Ensure dimensions match within residual blocks
+        x = tf.keras.layers.Dropout(0.2)(x)
+
+        output = tf.keras.layers.Dense(num_outputs, activation='linear')(x)
+        
+        model = tf.keras.Model(inputs=inputs, outputs=output)
+        return model

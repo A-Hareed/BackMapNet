@@ -1,2 +1,11 @@
 foo.csv
 *.png
+Book1.xlsx
+__pycache__/
+frame_99990.pdb.gz
+frame_CG_111190.pdb
+model_dnn_2LR.keras
+preprocessing_Clustering.sh
+temp.txt
+temp_111190.pdb
+pdb_files/

@@ -2,10 +2,16 @@ import numpy as np
 # import MDAnalysis as mda
 # from MDAnalysis.coordinates.memory import MemoryReader
 import csv
+import sys
+import os
+
 
 
 # PDB = 'CG_bb.pdb'
-PDB = 'Iga_all_atom_sim'
+PDB = sys.argv[1]
+array_file = sys.argv[2]
+
+
 
 with open(PDB,newline='') as f:
     pdb_file = csv.reader(f,delimiter='\t') 
@@ -26,7 +32,7 @@ with open(PDB,newline='') as f:
             line = line[0].split()
             line = [i for i in line if i != '']
             # time_frame = [line[1]]
-            row.append(line[1])
+         #   row.append(line[1])
         if 'ATOM' in line[0]:
             line = line[0].split()
             line = [i for  i in line if i != '']
@@ -47,8 +53,20 @@ print(full_data[:3])
 
 arr = np.array(full_data)
 
-np.save('extracted_pdb_all_atom_backbone_iga_antigen.npy',arr)
+
+if not os.path.exists(array_file):
+    np.save(array_file,arr)
+    
+    print(f"Coordinates saved to {array_file}")
+else:
+    print(f"{array_file} already exists. Skipping file.")
+    
+    old_arr = np.load(array_file)
+    arr = np.concatenate((old_arr,arr),axis=0)
+
+    np.save(array_file,arr)
 
 
+59800
 
-
+python2 CG_martini/martinize.py -f cluster_backbone_1/frame_59800.pdb -o system.top -x CG.pdb -p backbone -ff martini22 -elastic -dssp CG_martini/dssp
