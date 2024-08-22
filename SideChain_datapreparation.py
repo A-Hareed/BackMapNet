@@ -35,13 +35,22 @@ print(no_Atoms)
 
 arr = np.array([[1, 2], 
                 [3, 4]])
+start_indx = 0
+
 for i in range(0,len(sequence)):
     number_at = no_Atoms[sequence[i]]
     if isinstance(number_at[1][0], int):
-        print(number_at[1][0])
-   
+        print(number_at[1][0],number_at[0]*3)
+        padding_amount = 15 - (number_at[0]*3)
+        end_indx = start_indx + ( number_at[0]*3)
+        temp_arr = np.pad(arr_data[:,start_indx:end_indx], pad_width=((0, 0), (0, padding_amount)), mode='constant', constant_values=0)
+        print(temp_arr.shape, arr_data[:,start_indx:end_indx].shape)
+        if 'final_arr' in globals():
+            final_arr = np.concatenate((final_arr,temp_arr),axis=1)
+        else:
+            final_arr = temp_arr
 
-
+print(final_arr.shape, final_arr.reshape(-1,15).shape)
 padded_arr = np.pad(arr, pad_width=((0, 0), (0, 3)), mode='constant', constant_values=0)
-
-print(padded_arr,padded_arr.shape)
+print(temp_arr[0])
+# print(padded_arr,padded_arr.shape)
