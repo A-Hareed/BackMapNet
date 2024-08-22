@@ -9,3 +9,4 @@ preprocessing_Clustering.sh
 temp.txt
 temp_111190.pdb
 pdb_files/
+*.npy
