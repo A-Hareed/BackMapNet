@@ -36,10 +36,12 @@ print(no_Atoms)
 arr = np.array([[1, 2], 
                 [3, 4]])
 for i in range(0,len(sequence)):
-    
+    number_at = no_Atoms[sequence[i]]
+    if isinstance(number_at[1][0], int):
+        print(number_at[1][0])
+   
 
 
-    
 padded_arr = np.pad(arr, pad_width=((0, 0), (0, 3)), mode='constant', constant_values=0)
 
 print(padded_arr,padded_arr.shape)
