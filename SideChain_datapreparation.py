@@ -26,7 +26,7 @@ no_Atoms= {
  'SER':[2,[0]],
  'THR':[3,[0]],
  'TRP':[10,['0,1,2,3,4,5,27,28,29','6,7,8,9,10,11,12,13,14','21,22,23,24,25,26','15,16,17,18,19,20']],
- 'TYR':[8,['0[0,1,2],1[3,4,5],2[6,7,8]','3[9,10,11],4[12,13,14],5[15,16,17]','6[18,19,20],7[21,22,23']],
+ 'TYR':[8,['0,1,2,3,4,5,6,7,8','9,10,11,12,13,14,15,16,17','18,19,20,21,22,23']],
  'VAL':[3,[0]]
  }
 
@@ -53,9 +53,9 @@ for i in range(0,len(sequence)):
         for num, bead in enumerate(number_at[1]):
             if ',' in bead:
                 bead = [int(j) for j in bead.split(',')]
-                padding_amount = 15 - (len(bead)*3)
+                padding_amount = 15 - (len(bead))
                 singel_bead = np.pad(residue_arr[:,bead], pad_width=((0, 0), (0, padding_amount)), mode='constant', constant_values=0)
-                    
+                print(singel_bead.shape)
             elif '_' in bead:
                 
                 slicing = [int(j) for j in bead.split('_')]
