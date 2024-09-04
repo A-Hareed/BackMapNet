@@ -125,7 +125,7 @@ for i in range(0,len(sequence)):
 
 
 
-cluster_saved_file = f"cluster_{number}_SC_CG.npy"
+cluster_saved_file = f"cluster_{number}_SC_CG_RBF.npy"
 
 
 np.save(cluster_saved_file,final_arr)
