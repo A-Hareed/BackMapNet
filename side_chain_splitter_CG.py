@@ -109,37 +109,6 @@ for i in range(0,len(sequence)):
                 t1 = np.concatenate((residue_arr[:,number_at[1][num]],expanded_array),axis=1)
                 temp_arr = np.concatenate((temp_arr,t1),axis=1)
 
-
-
-
-
-
-    if isinstance(number_at[1][0], int):
-
-        padding_amount = 15 - (number_at[0]*3)
-        temp_arr = np.pad(arr_data[:,start_indx:end_indx], pad_width=((0, 0), (0, padding_amount)), mode='constant', constant_values=0)
-        if 'final_arr' in globals():
-            final_arr = np.concatenate((final_arr,temp_arr),axis=1)
-        else:
-            final_arr = temp_arr
-    else:
-        residue_arr = arr_data[:,start_indx:end_indx]
-        for num, bead in enumerate(number_at[1]):
-            if ',' in bead:
-                bead = [int(j) for j in bead.split(',')]
-                padding_amount = 15 - (len(bead))
-                singel_bead = np.pad(residue_arr[:,bead], pad_width=((0, 0), (0, padding_amount)), mode='constant', constant_values=0)
-            elif '_' in bead:
-                
-                slicing = [int(j) for j in bead.split('_')]
-                padding_amount = 15 - ((slicing[1]-slicing[0])*3)
-                singel_bead = np.pad(residue_arr[:,slicing[0]:slicing[1]], pad_width=((0, 0), (0, padding_amount)), mode='constant', constant_values=0)
-
-            if num == 0:
-                temp_arr = np.copy(singel_bead)
-            elif num >0:
-                temp_arr = np.concatenate((temp_arr,singel_bead),axis=1)
-
         if 'final_arr' in globals():
             final_arr = np.concatenate((final_arr,temp_arr),axis=1)
         else:
@@ -151,7 +120,12 @@ for i in range(0,len(sequence)):
 
 
 
-cluster_saved_file = f"cluster_PD_{number}_SC.npy"
+    start_indx=end_indx
+
+
+
+
+cluster_saved_file = f"cluster_{number}_SC_CG.npy"
 
 
 np.save(cluster_saved_file,final_arr)
