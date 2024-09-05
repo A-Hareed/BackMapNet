@@ -8,9 +8,9 @@ with open('sequence_1J4N.txt', 'r') as f:
     sequence = sequence.split(',')
 
 cluster_file = sys.argv[1]
-arr_data = np.load(cluster_file)
+arr_data = np.load(cluster_file).astype(float)
 
-pattern = r"cluster_(\d+)_SC.npy"
+pattern = r"cluster_(\d+)_CG_SC.npy"
 number = int(re.search(pattern, cluster_file).group(1))
 
 no_Atoms= {
@@ -27,7 +27,7 @@ no_Atoms= {
  'ILE':[1,['0,1,2'],[1.0,0]],
  'LEU':[1,['0,1,2'],[1.0,0]],
  'LYS':[2,['0,1,2','3,4,5'],[1,[0,3]]],
- 'PHE':[3,['0,1,2','3,4,5','6,7,8'],[1[0,0,0]]],
+ 'PHE':[3,['0,1,2','3,4,5','6,7,8'],[1,[0,0,0]]],
  'PRO':[1,['0,1,2'],[1.0,0]],
  'SER':[1,['0,1,2'],[1.0,2]],
  'THR':[1,['0,1,2'],[1.0,2]],
@@ -74,13 +74,15 @@ start_indx = 0
 for i in range(0,len(sequence)):
     number_at = no_Atoms[sequence[i]]
     end_indx = start_indx + ( number_at[0]*3)
+    print(i)
 
     if number_at[0] == 1:
 
-        bead_info = np.array([[number_at[2]]])
+        bead_info = np.array([number_at[2]])
         # Initial array with shape (1, 2)
 
         expanded_array = np.tile(bead_info, (arr_data.shape[0], 1))
+        # print(expanded_array.shape,bead_info.shape,arr_data[:,start_indx:end_indx].shape)
 
 
         arr_data[:,start_indx:end_indx]
@@ -93,7 +95,7 @@ for i in range(0,len(sequence)):
 
     else:
         residue_arr = arr_data[:,start_indx:end_indx]
-        for num in range(3):
+        for num in range(len(number_at[1])):
             if num == 0:
                 RBF = 1.0
                 bead_info = np.array([[RBF,number_at[2][1][num]]])
@@ -101,12 +103,17 @@ for i in range(0,len(sequence)):
                 c_point = residue_arr[:,:3]
                 temp_arr = np.concatenate((residue_arr[:,:3],expanded_array),axis=1)
             else:
-                RBF = calculate_rbf(c_point,residue_arr[:,number_at[1][num]])
+                # print(number_at)
+                splicer = [int(j) for j in number_at[1][num].split(',')]
+                RBF = calculate_rbf(c_point,residue_arr[:,splicer])
+                # print('RBF start')
+                # print(RBF, RBF.shape)
+                # print('RBF end')
                 bead_info = np.array([[number_at[2][1][num]]])
                 expanded_array = np.tile(bead_info, (arr_data.shape[0], 1))
                 expanded_array = np.concatenate((RBF,expanded_array),axis=1)
 
-                t1 = np.concatenate((residue_arr[:,number_at[1][num]],expanded_array),axis=1)
+                t1 = np.concatenate((residue_arr[:,splicer],expanded_array),axis=1)
                 temp_arr = np.concatenate((temp_arr,t1),axis=1)
 
         if 'final_arr' in globals():
@@ -114,7 +121,7 @@ for i in range(0,len(sequence)):
         else:
             final_arr = temp_arr
 
-
+  
     start_indx=end_indx
 
 
@@ -122,6 +129,9 @@ for i in range(0,len(sequence)):
 
     start_indx=end_indx
 
+print(final_arr.reshape(-1,5)[:,3].max(),final_arr.reshape(-1,5)[:,3].min())
+print(final_arr.reshape(-1,5)[:,4].max(),final_arr.reshape(-1,5)[:,4].min())
+print(final_arr.reshape(-1,5)[:,0].max(),final_arr.reshape(-1,5)[:,0].min())
 
 
 
