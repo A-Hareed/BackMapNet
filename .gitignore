@@ -12,3 +12,4 @@ pdb_files/
 *.npy
 sequence_1J4N.txt
 test_bash.sh
+*.json
