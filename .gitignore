@@ -13,3 +13,6 @@ pdb_files/
 sequence_1J4N.txt
 test_bash.sh
 *.json
+results/
+sequence_1UBQ.txt
+side_chain_model.keras

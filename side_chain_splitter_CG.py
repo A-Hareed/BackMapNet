@@ -3,7 +3,7 @@ import sys
 import re
 
 
-with open('sequence_1J4N.txt', 'r') as f:
+with open('sequence_1UBQ.txt', 'r') as f:
     sequence = f.read()
     sequence = sequence.split(',')
 
@@ -107,6 +107,7 @@ for i in range(0,len(sequence)):
     end_indx = start_indx + ( number_at[0]*3)
     # print(i)
     B_score = BLOSUM_60[three_to_one[sequence[i]]]
+    print(sequence[i])
     if number_at[0] == 1:
         new_lst = B_score.copy()
         new_lst.extend(number_at[2])
@@ -158,13 +159,13 @@ for i in range(0,len(sequence)):
                 bead_info = np.array([new_lst])
 
                 expanded_array = np.tile(bead_info, (arr_data.shape[0], 1))
-                # print(expanded_array[:,:-1].shape,RBF.shape,expanded_array[:,-1].shape)
+                print(expanded_array[:,:-1].shape,RBF.shape,expanded_array[:,-1].shape)
                 expanded_array = np.concatenate((expanded_array[:,:-1],RBF,expanded_array[:,-1].reshape(-1,1)),axis=1)
 
                 t1 = np.concatenate((residue_arr[:,splicer],expanded_array),axis=1)
                 temp_arr = np.concatenate((temp_arr,t1),axis=1)
-                # print(temp_arr.shape,len(number_at[1]))
-               
+                print(temp_arr.shape,len(number_at[1]))
+    
 
         if 'final_arr' in globals():
             final_arr = np.concatenate((final_arr,temp_arr),axis=1)
