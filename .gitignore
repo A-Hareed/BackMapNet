@@ -3,11 +3,9 @@ foo.csv
 Book1.xlsx
 __pycache__/
 frame_99990.pdb.gz
-frame_CG_111190.pdb
 model_dnn_2LR.keras
 preprocessing_Clustering.sh
 temp.txt
-temp_111190.pdb
 pdb_files/
 *.npy
 sequence_1J4N.txt
@@ -16,3 +14,7 @@ test_bash.sh
 results/
 sequence_1UBQ.txt
 side_chain_model.keras
+*.pdb
+images_draw.drawio
+model_test_1D_conv.keras
+model_test_1D_conv_sideChain.keras
