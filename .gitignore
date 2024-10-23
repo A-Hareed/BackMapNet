@@ -19,3 +19,4 @@ images_draw.drawio
 model_test_1D_conv.keras
 model_test_1D_conv_sideChain.keras
 tmp_xyz.xyz
+images/
