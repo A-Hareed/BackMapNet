@@ -101,23 +101,77 @@ def calculate_rbf(array1, array2, gamma=0.1):
   
     return rbf_values
 
-def scale_and_center_fragments(fragments, box_size, input_shape):
+import numpy as np
 
+def normalize_fragments_with_custom_min_max(fragments):
+    """
+    Normalize each fragment using the custom min-max normalization, 
+    and save custom_min and range (custom_max - custom_min) for reverse normalization.
+    
+    Parameters:
+    fragments (ndarray): Array of fragments with shape (n_fragments, n_points, n_dimensions).
+    
+    Returns:
+    normalized_fragments (ndarray): Normalized fragments with the same shape as input.
+    custom_min (ndarray): Array of custom minimum values with shape (n_fragments, 1, 1).
+    custom_range (ndarray): Array of ranges (custom_max - custom_min) with shape (n_fragments, 1, 1).
+    """
+    # Calculate absolute min and max for each fragment
+    absolute_min = np.min(fragments, axis=(1, 2), keepdims=True)
+    absolute_max = np.max(fragments, axis=(1, 2), keepdims=True)
+    
+    # Adjust the min and max by ±4
+    custom_min = absolute_min - 4
+    custom_max = absolute_max + 4
+    
+    # Calculate the range (custom_max - custom_min)
+    custom_range = custom_max - custom_min
+    
+    # Normalize using the custom min-max
+    normalized_fragments = (fragments - custom_min) / custom_range
+    
+    return normalized_fragments, custom_min, custom_range
 
-    # Reshape fragments based on the input shape and reshape_shape
-    reshaped_fragments = fragments
+def reverse_normalize(normalized_fragments, custom_min, custom_range):
+    """
+    Reverse the normalization to retrieve the original fragments.
+    
+    Parameters:
+    normalized_fragments (ndarray): Normalized fragments.
+    custom_min (ndarray): Saved custom minimum values.
+    custom_range (ndarray): Saved range values (custom_max - custom_min).
+    
+    Returns:
+    ndarray: Original fragments.
+    """
+    return normalized_fragments * custom_range + custom_min
 
-    # Calculate maximum absolute coordinate value for each fragment
-    max_coords = np.max(np.abs(reshaped_fragments), axis=tuple(range(1, reshaped_fragments.ndim)))
+# Example Usage:
+# Assuming fragments is your input array
+fragments = np.random.rand(10, 32, 3)  # Example input: 10 fragments, each with 32 points and 3 dimensions
+normalized_fragments, custom_min, custom_range = normalize_fragments_with_custom_min_max(fragments)
 
-   # Calculate element-wise scaling factors
-    scaling_factors = np.minimum(box_size[0] / (2 * max_coords), box_size[1] / (2 * max_coords), box_size[2] / (2 * max_coords))
+# Save custom_min and custom_range as .npy files
+np.save('custom_min.npy', custom_min)
+np.save('custom_range.npy', custom_range)
 
-    # Select minimum scaling factor across dimensions for each fragment
-#    scaling_factors = np.where(box_size[1] / (2 * max_coords) < scaling_factors, box_size[1] / (2 * max_coords), scaling_factors)
-    scaling_factors = np.where(box_size[2] / (2 * max_coords) < scaling_factors, box_size[2] / (2 * max_coords), scaling_factors)
-    # Scale fragments individually
-    scaled_fragments = reshaped_fragments * scaling_factors[:, np.newaxis, np.newaxis]
+# To reload later:
+loaded_custom_min = np.load('custom_min.npy')
+loaded_custom_range = np.load('custom_range.npy')
+
+# Reverse normalization
+original_fragments = reverse_normalize(normalized_fragments, loaded_custom_min, loaded_custom_range)
+
+##***************************************************************************************
+##***************************************************************************************
+##***************************************************************************************
+##***************************************************************************************
+##***************************************************************************************
+
+# Example usage
+# Assuming `arr_data` is your array of fragments (n_fragments, n_points, n_dimensions)
+normalized_data = normalize_fragments_with_custom_min_max(arr_data)
+
 
     # Calculate geometric center of each fragment
  #   fragment_centers = np.mean(scaled_fragments, axis=1)
