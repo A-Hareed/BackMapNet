@@ -49,6 +49,15 @@ else:
     # Optionally, exit the script or handle the error as needed
     sys.exit(1)
 
+
+
+Traceback (most recent call last):
+  File "/scratch/ayubh/Desktop/BACKUP_mapping_data/MD_runs_BM/1TUP_P53_DNA/gromacs/get_scaled_side_chain_model.py", line 214, in <module>
+    print(f'The normalised array max is as follows: {array_CG.max()} and the min is as follows {array_CG.min()},  while the shape of the cus_R is {custom_range.shape} and shape ofcus_Min is {custom_min.shape}')
+                                                     ^^^^^^^^^^^^^^
+  File "/scratch/ayubh/miniforge3/envs/tf_gpu/lib/python3.11/site-packages/numpy/core/_methods.py", line 41, in _amax
+    return umr_maximum(a, axis, None, out, keepdims, initial, where)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 """
 
 
