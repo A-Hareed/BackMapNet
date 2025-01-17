@@ -5,7 +5,7 @@ from tensorflow.keras.layers import Masking
 
 input_layer = Input(shape=(timesteps, features))
 masked_output = Masking(mask_value=-1)(input_layer)
-
+temp_arr = np.pad(array_AA, pad_width=((0, 0), (0, padding_amount)), mode='constant', constant_values=0)
 
 
 with open(f'sequence_{sys.argv[2]}.txt', 'r') as f:
