@@ -8,6 +8,17 @@ masked_output = Masking(mask_value=-1)(input_layer)
 temp_arr = np.pad(array_AA, pad_width=((0, 0), (0, padding_amount)), mode='constant', constant_values=0)
 
 
+"""
+Traceback (most recent call last):
+  File "/scratch/ayubh/Desktop/BACKUP_mapping_data/MD_runs_BM/1J4N_aquaPorin_bilayer/gromacs/get_scaled_side_chain_model_AA.py", line 173, in <module>
+    print(f'masked out put has a max value of {masked_output.max()} and a min value of {masked_output.min()}')
+                                               ^^^^^^^^^^^^^^^^^
+  File "/scratch/ayubh/miniforge3/envs/tf_gpu/lib/python3.11/site-packages/tensorflow/python/framework/tensor.py", line 261, in __getattr__
+    self.__getattribute__(name)
+AttributeError: 'tensorflow.python.framework.ops.EagerTensor' object has no attribute 'max'
+"""
+
+
 with open(f'sequence_{sys.argv[2]}.txt', 'r') as f:
     sequence = f.read()
     sequence = sequence.split(',')
