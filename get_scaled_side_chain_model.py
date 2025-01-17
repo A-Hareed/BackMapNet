@@ -16,6 +16,21 @@ Traceback (most recent call last):
   File "/scratch/ayubh/miniforge3/envs/tf_gpu/lib/python3.11/site-packages/tensorflow/python/framework/tensor.py", line 261, in __getattr__
     self.__getattribute__(name)
 AttributeError: 'tensorflow.python.framework.ops.EagerTensor' object has no attribute 'max'
+
+
+
+for scripts in 1J4N_aquaPorin_bilayer/gromacs 2J4A_Thyroid_hormone_receptor/gromacs 1TUP_P53_DNA/gromacs 1UBQ_Ubiquilin_1/gromacs 1LIN_calmodulin/gromacs  
+
+do 
+        echo "${scripts}"
+        cd $scripts
+
+        bash parra_run.sh 
+        cd ../..
+
+done 
+
+
 """
 
 
