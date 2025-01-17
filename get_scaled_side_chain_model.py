@@ -37,7 +37,8 @@ Traceback (most recent call last):
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/ayubh/miniforge3/envs/tf_gpu/lib/python3.11/site-packages/numpy/lib/npyio.py", line 427, in load
     fid = stack.enter_context(open(os_fspath(file), "rb"))
-
+    
+file_path = f'custom_range_{sys.argv[2]}_perBead{number}.npy
 if os.path.exists(file_path):
     # If the file exists, load it
     custom_range_arr = np.load(file_path)
