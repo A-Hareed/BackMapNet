@@ -31,6 +31,14 @@ do
 done 
 
 
+Traceback (most recent call last):
+  File "/scratch/ayubh/Desktop/BACKUP_mapping_data/MD_runs_BM/1TUP_P53_DNA/gromacs/get_scaled_side_chain_model_AA.py", line 23, in <module>
+    custom_range_arr = np.load(f'custom_range_{sys.argv[2]}_perBead{number}.npy')
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/ayubh/miniforge3/envs/tf_gpu/lib/python3.11/site-packages/numpy/lib/npyio.py", line 427, in load
+    fid = stack.enter_context(open(os_fspath(file), "rb"))
+
+
 """
 
 
