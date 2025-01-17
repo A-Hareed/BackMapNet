@@ -132,6 +132,25 @@ def normalize_fragments_with_custom_min_max(fragments):
     
     return normalized_fragments, custom_min, custom_range
 
+def normalize_with_provided_min_max(fragments, custom_min, custom_range):
+    """
+    Normalize fragments using provided custom_min and custom_range values.
+    
+    Parameters:
+    fragments (ndarray): Array of fragments with shape (n_fragments, n_points, n_dimensions).
+    custom_min (ndarray): Array of custom minimum values with shape (n_fragments, 1, 1).
+    custom_range (ndarray): Array of custom range values with shape (n_fragments, 1, 1).
+    
+    Returns:
+    normalized_fragments (ndarray): Normalized fragments with the same shape as input.
+    """
+    # Normalize using the provided custom_min and custom_range
+    normalized_fragments = (fragments - custom_min) / custom_range
+    
+    return normalized_fragments
+
+
+
 def reverse_normalize(normalized_fragments, custom_min, custom_range):
     """
     Reverse the normalization to retrieve the original fragments.
