@@ -1,6 +1,12 @@
 import numpy as np
 import sys
 import re
+from tensorflow.keras.layers import Masking
+
+input_layer = Input(shape=(timesteps, features))
+masked_output = Masking(mask_value=-1)(input_layer)
+
+
 
 with open(f'sequence_{sys.argv[2]}.txt', 'r') as f:
     sequence = f.read()
