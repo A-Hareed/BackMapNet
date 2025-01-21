@@ -72,7 +72,13 @@ Traceback (most recent call last):
 2025-01-21 12:00:22.054369: I external/local_xla/xla/stream_executor/cuda/cuda_driver.cc:1101] failed to allocate 122.88MiB (128843776 bytes) from device: CUDA_ERROR_OUT_OF_MEMORY: out of memory
 2025-01-21 12:00:22.054498: I external/local_xla/xla/stream_executor/cuda/cuda_driver.cc:1101] failed to allocate 110.59MiB (115959552 bytes) from device: CUDA_ERROR_OUT_OF_MEMORY: out of memory
 
-           
+
+array([ 0.9133347 ,  0.08185054,  0.1224618 ,  0.9191961 ,  0.08561859,
+        0.15365292, -2.        , -2.        , -2.        , -2.        ,
+       -2.        , -2.        , -2.        , -2.        , -2.        ],
+      dtype=float32)
+
+
 """
 
 
