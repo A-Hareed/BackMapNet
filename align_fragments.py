@@ -64,6 +64,26 @@ def align_fragment(fragment):
     
     return aligned, R, centroid
 
+def transform_all_atom_with_reference(all_atom_fragment, ref_centroid, ref_R):
+    """
+    Transform an all-atom fragment using the reference centroid and rotation matrix
+    from the coarse-grained model.
+    
+    Parameters:
+        all_atom_fragment (ndarray): All-atom fragment (n_atoms, 3).
+        ref_centroid (ndarray): Centroid from the coarse-grained model.
+        ref_R (ndarray): Rotation matrix from the coarse-grained model.
+    
+    Returns:
+        transformed (ndarray): The all-atom fragment transformed into the coarse-grained reference frame.
+    """
+    # Center the all-atom fragment using the reference centroid
+    centered_all_atom = all_atom_fragment - ref_centroid
+    # Apply the reference rotation
+    transformed = np.dot(centered_all_atom, ref_R)
+    return transformed
+
+
 def process_fragments(fragments):
     """
     Normalize and then align each fragment.
@@ -100,5 +120,7 @@ data = np.array([
 # Process the fragments: first normalize, then align
 aligned_data = process_fragments(data)
 
+aligned_coarse, ref_R, ref_centroid = align_fragment(coarse_fragment)
+aligned_all_atom = transform_all_atom_with_reference(all_atom_fragment, ref_centroid, ref_R)
 print("Aligned Fragments:")
 print(aligned_data)
