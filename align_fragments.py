@@ -124,3 +124,15 @@ aligned_coarse, ref_R, ref_centroid = align_fragment(coarse_fragment)
 aligned_all_atom = transform_all_atom_with_reference(all_atom_fragment, ref_centroid, ref_R)
 print("Aligned Fragments:")
 print(aligned_data)
+
+
+
+
+
+plt.plot(LIN_uncentered[:,0], LIN_uncentered[:,1], c='r', marker='o')
+plt.plot(J4N_uncentered[:,0], J4N_uncentered[:,1], c='b', marker='o',alpha=0.5)
+plt.plot(TUP[:32,0], TUP[:32,1], c='g', marker='o',alpha=0.5)
+plt.xlabel("X Axis")
+plt.ylabel("Y Axis")
+plt.legend(['1LIN','1J4N','1TUP'])
+plt.show()
