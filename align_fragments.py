@@ -136,3 +136,36 @@ plt.xlabel("X Axis")
 plt.ylabel("Y Axis")
 plt.legend(['1LIN','1J4N','1TUP'])
 plt.show()
+
+
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Sample Data (Replace with your actual data)
+LIN_uncentered = np.random.rand(50, 2)  # Example data
+J4N_uncentered = np.random.rand(50, 2)
+TUP = np.random.rand(50, 2)
+
+# High-resolution figure
+fig, ax = plt.subplots(figsize=(8, 6), dpi=300)  # Adjust figure size & resolution
+
+# Plot each dataset with refined styles
+ax.plot(LIN_uncentered[:,0], LIN_uncentered[:,1], 'ro-', markersize=5, linewidth=1.5, label='1LIN')
+ax.plot(J4N_uncentered[:,0], J4N_uncentered[:,1], 'bo-', markersize=5, alpha=0.7, linewidth=1.5, label='1J4N')
+ax.plot(TUP[:32,0], TUP[:32,1], 'go-', markersize=5, alpha=0.7, linewidth=1.5, label='1TUP')
+
+# Improve labels & ticks
+ax.set_xlabel("X Axis", fontsize=14, fontweight='bold')
+ax.set_ylabel("Y Axis", fontsize=14, fontweight='bold')
+
+# Fine-tune legend
+ax.legend(fontsize=12, loc='best', frameon=True)
+
+# Improve grid & axis appearance
+ax.grid(True, linestyle="--", linewidth=0.6, alpha=0.7)
+ax.tick_params(axis='both', which='major', labelsize=12)
+
+# Display the plot
+plt.show()
