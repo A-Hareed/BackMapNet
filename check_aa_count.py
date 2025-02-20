@@ -15,7 +15,7 @@ Running:
     1c3w  -- charmgui id 2059091804
 """
 # List of PDB IDs
-pdb_ids = ["2j4a", "1ubq", "1j4n", "1tup", "1lin", "1c3w","2HI4"] # "1ake", 1TUP
+pdb_ids = ["2j4a", "1ubq", "1j4n", "1tup", "1lin", "1c3w","2por","3eml"] # "1ake", 1TUP
 
 # Initialize the PDB parser
 parser = PDBParser(QUIET=True)
