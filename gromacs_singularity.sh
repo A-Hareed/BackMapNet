@@ -73,9 +73,9 @@ From: ubuntu:20.04
     DEBIAN_FRONTEND=noninteractive
     TZ=Etc/UTC
     ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
-    dpkg-reconfigure --frontend noninteractive tzdata
     apt-get update
-    apt-get install -y wget build-essential cmake gfortran
+    apt-get install -y tzdata wget build-essential cmake gfortran
+    dpkg-reconfigure --frontend noninteractive tzdata
     wget https://ftp.gromacs.org/pub/gromacs/gromacs-2021.8.tar.gz
     tar xzf gromacs-2021.8.tar.gz
     cd gromacs-2021.8
