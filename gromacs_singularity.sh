@@ -62,3 +62,33 @@ Configuring tzdata
 Please select the geographic area in which you live. Subsequent configuration
 questions will narrow this down by presenting a list of cities, representing
 the time zones in which they are located.
+
+
+
+
+Bootstrap: docker
+From: ubuntu:20.04
+
+%post
+    DEBIAN_FRONTEND=noninteractive
+    TZ=Etc/UTC
+    ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
+    dpkg-reconfigure --frontend noninteractive tzdata
+    apt-get update
+    apt-get install -y wget build-essential cmake gfortran
+    wget https://ftp.gromacs.org/pub/gromacs/gromacs-2021.8.tar.gz
+    tar xzf gromacs-2021.8.tar.gz
+    cd gromacs-2021.8
+    mkdir build
+    cd build
+    cmake .. -DGMX_BUILD_SHARED_LIBS=ON -DGMX_MPI=OFF
+    make -j $(nproc)
+    make install
+    export PATH="/usr/local/gromacs/bin:$PATH"
+    gmx --version
+
+%environment
+    export PATH="/usr/local/gromacs/bin:$PATH"
+
+%runscript
+    gmx "$@"
