@@ -37,3 +37,9 @@ From: ubuntu:20.04
 
 %runscript
     gmx "$@"
+
+
+
+
+
+sudo apptainer build gromacs2021.sif gromacs2021.def
