@@ -118,6 +118,6 @@ apt-get install -y libfftw3-dev
     gmx --version
 
 
-apt-get install -y tzdata wget build-essential cmake gfortran libfftw3-de
+apt-get install -y tzdata wget build-essential cmake gfortran libfftw3-dev
 
     rm -rf build #clean build
