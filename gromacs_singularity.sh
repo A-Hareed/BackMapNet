@@ -102,3 +102,27 @@ From: ubuntu:20.04
 
 %runscript
     gmx "$@"
+
+
+
+
+apt-get install -y libfftw3-dev
+
+
+%post
+    DEBIAN_FRONTEND=noninteractive
+    TZ=Etc/UTC
+    ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
+    apt-get update
+    apt-get install -y tzdata wget build-essential cmake gfortran libfftw3-dev
+    dpkg-reconfigure --frontend noninteractive tzdata
+    wget https://ftp.gromacs.org/gromacs/gromacs-2021.5.tar.gz #Verify this link.
+    tar xzf gromacs-2021.5.tar.gz
+    cd gromacs-2021.5
+    mkdir build
+    cd build
+    cmake .. -DGMX_BUILD_SHARED_LIBS=ON -DGMX_MPI=OFF
+    make -j $(nproc)
+    make install
+    export PATH="/usr/local/gromacs/bin:$PATH"
+    gmx --version
