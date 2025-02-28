@@ -10,3 +10,4 @@ sudo apt update
 
 
 singularity --version
+apptainer version 1.2.5
