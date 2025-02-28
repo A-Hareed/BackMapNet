@@ -52,13 +52,12 @@ sudo apptainer build gromacs2021.sif gromacs2021.def
 
 
 
-
-+ apt-get install -y tzdata wget build-essential cmake gfortran libfftw3-de
+sudo: unable to resolve host BII-SPD-ba9adc: Name or service not known
 Reading package lists... Done
-Building dependency tree       
+Building dependency tree... Done
 Reading state information... Done
-E: Unable to locate package libfftw3-de
-FATAL:   While performing build: while running engine: exit status 100
+E: Unable to locate package libfftw3-deV
+
 
 
 
