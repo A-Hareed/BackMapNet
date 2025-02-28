@@ -53,14 +53,15 @@ sudo apptainer build gromacs2021.sif gromacs2021.def
 
 
 
-+ DEBIAN_FRONTEND=noninteractive
-+ TZ=Etc/UTC
-+ ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
-+ dpkg-reconfigure --frontend noninteractive tzdata
-dpkg-query: package 'tzdata' is not installed and no information is available
-Use dpkg --info (= dpkg-deb --info) to examine archive files.
-/usr/sbin/dpkg-reconfigure: tzdata is not installed
-FATAL:   While performing build: while running engine: exit status 1
++ wget https://ftp.gromacs.org/pub/gromacs/gromacs-2021.8.tar.gz
+--2025-02-28 06:04:36--  https://ftp.gromacs.org/pub/gromacs/gromacs-2021.8.tar.gz
+Resolving ftp.gromacs.org (ftp.gromacs.org)... 130.237.11.165, 2001:6b0:1:1191:216:3eff:fec7:6e30
+Connecting to ftp.gromacs.org (ftp.gromacs.org)|130.237.11.165|:443... connected.
+HTTP request sent, awaiting response... 404 Not Found
+2025-02-28 06:04:39 ERROR 404: Not Found.
+
+FATAL:   While performing build: while running engine: exit status 8
+
 
 
 
