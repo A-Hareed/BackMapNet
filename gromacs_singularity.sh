@@ -53,23 +53,13 @@ sudo apptainer build gromacs2021.sif gromacs2021.def
 
 
 
--- pkg-config could not detect fftw3f, trying generic detection
-Could not find fftw3f library named libfftw3f, please specify its location in CMAKE_PREFIX_PATH or FFTWF_LIBRARY by hand (e.g. -DFFTWF_LIBRARY='/path/to/libfftw3f.so')
-CMake Error at cmake/gmxManageFFTLibraries.cmake:91 (MESSAGE):
-  Cannot find FFTW 3 (with correct precision - libfftw3f for mixed-precision
-  GROMACS or libfftw3 for double-precision GROMACS).  Either choose the right
-  precision, choose another FFT(W) library (-DGMX_FFT_LIBRARY), enable the
-  advanced option to let GROMACS build FFTW 3 for you
-  (-DGMX_BUILD_OWN_FFTW=ON), or use the really slow GROMACS built-in fftpack
-  library (-DGMX_FFT_LIBRARY=fftpack).
-Call Stack (most recent call first):
-  CMakeLists.txt:671 (include)
++ apt-get install -y tzdata wget build-essential cmake gfortran libfftw3-de
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+E: Unable to locate package libfftw3-de
+FATAL:   While performing build: while running engine: exit status 100
 
-
--- Configuring incomplete, errors occurred!
-See also "/gromacs-2021.5/build/CMakeFiles/CMakeOutput.log".
-See also "/gromacs-2021.5/build/CMakeFiles/CMakeError.log".
-FATAL:   While performing build: while running engine: exit status 1
 
 
 
