@@ -53,14 +53,23 @@ sudo apptainer build gromacs2021.sif gromacs2021.def
 
 
 
-+ wget https://ftp.gromacs.org/pub/gromacs/gromacs-2021.8.tar.gz
---2025-02-28 06:04:36--  https://ftp.gromacs.org/pub/gromacs/gromacs-2021.8.tar.gz
-Resolving ftp.gromacs.org (ftp.gromacs.org)... 130.237.11.165, 2001:6b0:1:1191:216:3eff:fec7:6e30
-Connecting to ftp.gromacs.org (ftp.gromacs.org)|130.237.11.165|:443... connected.
-HTTP request sent, awaiting response... 404 Not Found
-2025-02-28 06:04:39 ERROR 404: Not Found.
+-- pkg-config could not detect fftw3f, trying generic detection
+Could not find fftw3f library named libfftw3f, please specify its location in CMAKE_PREFIX_PATH or FFTWF_LIBRARY by hand (e.g. -DFFTWF_LIBRARY='/path/to/libfftw3f.so')
+CMake Error at cmake/gmxManageFFTLibraries.cmake:91 (MESSAGE):
+  Cannot find FFTW 3 (with correct precision - libfftw3f for mixed-precision
+  GROMACS or libfftw3 for double-precision GROMACS).  Either choose the right
+  precision, choose another FFT(W) library (-DGMX_FFT_LIBRARY), enable the
+  advanced option to let GROMACS build FFTW 3 for you
+  (-DGMX_BUILD_OWN_FFTW=ON), or use the really slow GROMACS built-in fftpack
+  library (-DGMX_FFT_LIBRARY=fftpack).
+Call Stack (most recent call first):
+  CMakeLists.txt:671 (include)
 
-FATAL:   While performing build: while running engine: exit status 8
+
+-- Configuring incomplete, errors occurred!
+See also "/gromacs-2021.5/build/CMakeFiles/CMakeOutput.log".
+See also "/gromacs-2021.5/build/CMakeFiles/CMakeError.log".
+FATAL:   While performing build: while running engine: exit status 1
 
 
 
