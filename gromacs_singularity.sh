@@ -126,3 +126,8 @@ apt-get install -y libfftw3-dev
     make install
     export PATH="/usr/local/gromacs/bin:$PATH"
     gmx --version
+
+
+apt-get install -y tzdata wget build-essential cmake gfortran libfftw3-de
+
+    rm -rf build #clean build
