@@ -53,15 +53,15 @@ sudo apptainer build gromacs2021.sif gromacs2021.def
 
 
 
-debconf: unable to initialize frontend: Dialog
-debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 76.)
-debconf: falling back to frontend: Readline
-Configuring tzdata
-------------------
++ DEBIAN_FRONTEND=noninteractive
++ TZ=Etc/UTC
++ ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
++ dpkg-reconfigure --frontend noninteractive tzdata
+dpkg-query: package 'tzdata' is not installed and no information is available
+Use dpkg --info (= dpkg-deb --info) to examine archive files.
+/usr/sbin/dpkg-reconfigure: tzdata is not installed
+FATAL:   While performing build: while running engine: exit status 1
 
-Please select the geographic area in which you live. Subsequent configuration
-questions will narrow this down by presenting a list of cities, representing
-the time zones in which they are located.
 
 
 
