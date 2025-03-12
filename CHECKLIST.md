@@ -2,7 +2,7 @@
 - [x] 1J4N
 - [x] 1LIN
 - [x] 1TUP
-- [ ] 1UBQ
+- [x] 1UBQ
 - [x] 2J4A
 - [ ] 1C3W
 - [ ] 2POR
