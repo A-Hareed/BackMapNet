@@ -1,7 +1,7 @@
 ## First set of Featuere inputs:
 - [x] 1J4N
 - [x] 1LIN
-- [ ] 1TUP
+- [x] 1TUP
 - [ ] 1UBQ
 - [ ] 2J4A
 - [ ] 1C3W
