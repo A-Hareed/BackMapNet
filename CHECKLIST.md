@@ -3,7 +3,7 @@
 - [x] 1LIN
 - [x] 1TUP
 - [ ] 1UBQ
-- [ ] 2J4A
+- [x] 2J4A
 - [ ] 1C3W
 - [ ] 2POR
 - [ ] 4MT2
