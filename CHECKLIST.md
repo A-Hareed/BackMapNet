@@ -7,7 +7,7 @@
 - [ ] 1C3W CG pdb extraction
 - [ ] 2POR  CG pdb extraction
 - [x] 4MT2  All-atom PDB to array
-- [x] 4IVV  All-atom PDB to array
+- [x] 4IVV  CG PDB to array
 - [ ] 1RWH  MD sim still runnning 
 - [ ] 1TGB  All Atom extraction
 - [ ] 1TIM  CG PDB extraction
