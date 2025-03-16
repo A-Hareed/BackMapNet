@@ -9,6 +9,6 @@
 - [x] 4MT2  CG PDB to array
 - [x] 4IVV  CG PDB to array
 - [ ] 1RWH  Clustering 
-- [ ] 1TGB  All Atom extraction
+- [ ] 1TGB  All Atom PDB extraction
 - [ ] 1TIM  CG PDB extraction
 
