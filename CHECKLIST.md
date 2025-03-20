@@ -10,5 +10,5 @@
 - [ ] 2POR  All Atom PDB to array
 - [ ] 1RWH  CG PDB extraction
 - [ ] 1TGB  CG PDB extraction
-- [ ] 1TIM  CG PDB extraction
+- [ ] 1TIM  CG PDB to array
 
