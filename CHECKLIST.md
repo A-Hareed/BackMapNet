@@ -10,13 +10,6 @@
 - [x] 2POR  All Atom PDB to array
 - [ ] 1RWH  CG PDB to array
 - [ ] 1TGB  CG PDB extraction
-- [ ] 1TIM  CG PDB to array
+- [x] 1TIM  DONE Backbone data features
 
 
-[2967]
-[741]
-
-
-
-[2664,5328]
-[666,1332]
