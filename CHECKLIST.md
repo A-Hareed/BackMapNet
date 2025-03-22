@@ -8,7 +8,7 @@
 - [x] 4MT2  DONE Backbone data features
 - [x] 4IVV  DONE Backbone data features
 - [x] 2POR  All Atom PDB to array
-- [ ] 1RWH  CG PDB extraction
+- [ ] 1RWH  All Atom PDB to array
 - [ ] 1TGB  CG PDB extraction
 - [ ] 1TIM  CG PDB to array
 
