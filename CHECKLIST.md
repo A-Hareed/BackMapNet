@@ -13,3 +13,4 @@
 - [x] 1TIM  DONE Backbone data features    {\\\\\\\EXTRACTING Side chain PDB \\\\\\\\\}
 
 
+[4080,4896,8976,9756,13836,14616,18696]
