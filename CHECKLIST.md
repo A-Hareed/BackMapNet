@@ -28,3 +28,13 @@ gmx trjconv -s topol.tpr -f traj.xtc -o protein.gro -pbc mol -center -dump 0
 
 color Display Background white
 
+
+
+with open(f'sequence_{name_pdb}.txt','w') as f:
+    result=''
+    for i,res in enumerate(sequence):
+        if i < (len(sequence)-1):
+            result += res +','
+        else:
+            result += res
+    f.write(result)
