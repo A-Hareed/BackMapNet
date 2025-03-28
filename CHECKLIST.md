@@ -24,3 +24,7 @@ gmx trjconv -s topol.tpr -f traj.xtc -o noPBC.xtc -pbc mol
 
 
 gmx trjconv -s topol.tpr -f traj.xtc -o protein.gro -pbc mol -center -dump 0
+
+
+color Display Background white
+
