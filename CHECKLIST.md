@@ -27,3 +27,11 @@ gmx trjconv -s topol.tpr -f traj.xtc -o protein.gro -pbc mol -center -dump 0
 
 
 color Display Background white
+
+
+
+[6552,9132,5228,6088]
+
+[1638,2283,3921,4566]
+
+
