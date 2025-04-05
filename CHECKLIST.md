@@ -30,8 +30,8 @@ color Display Background white
 
 
 
-[1197]
+[1188,1197,2373]
 
-[300]
+[297,300,591]
 
 
