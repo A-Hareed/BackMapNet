@@ -5,11 +5,11 @@
 - [x] 1UBQ  Yet to finish the RDF  Backbone done    {Side chain PDB done}
 - [x] 2J4A  Yet to finish the RDF  Backbone done    {Side chain PDB done}
 - [x] 1C3W  DONE Backbone data features    {Side chain PDB done} {Started CG SC array} 
-- [x] 4MT2  DONE Backbone data features    {Side chain PDB done} {Completed CG SC array}
+- [x] 4MT2  DONE Backbone data features    {Side chain PDB done} {Started CG final_feat}
 - [x] 4IVV  DONE Backbone data features    {Side chain PDB done} {Completed CG SC array}
 - [x] 2POR  DONE Backbone data features    {Side chain PDB done} {Started CG SC array}
-- [x] 1RWH  DONE Backbone data features    {Side chain PDB done} {Completed CG SC array}
-- [x] 1TGB  DONE Backbone data features    {Side chain PDB done} {Completed CG SC array}
+- [x] 1RWH  DONE Backbone data features    {Side chain PDB done} {Running CG final_feat}
+- [x] 1TGB  DONE Backbone data features    {Side chain PDB done} {Started CG final_feat}
 - [x] 1TIM  DONE Backbone data features    {Side chain PDB done} {Completed CG SC array}
 
 
