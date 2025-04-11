@@ -1,6 +1,6 @@
 ## First set of Featuere inputs:
 - [x] 1J4N  Yet to finish the RDF   Backbone done    {DONE CG final_feat}  {target done} {**COMPLETED**}
-- [ ] 1LIN  Yet to finish the RDF  Backbone done    {Side chain PDB done}
+- [ ] 1LIN  Yet to finish the RDF  Backbone done    {Side chain PDB done}  {target done} {**COMPLETED**}
 - [x] 1TUP  Yet to finish the RDF  Backbone done    {DONE CG final_feat}  {target done} {**COMPLETED**}
 - [x] 1UBQ  Yet to finish the RDF  Backbone done    {DONE CG final_feat}  {target done} {**COMPLETED**}
 - [x] 2J4A  Yet to finish the RDF  Backbone done    {DONE CG final_feat}  {target done} {**COMPLETED**}
