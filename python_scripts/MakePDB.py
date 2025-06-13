@@ -3,7 +3,7 @@
 Multi-chain PDB writer: parses a sequence file with chains separated by '|' and writes frames with TER records.
 
 Usage:
-    python MAKE_PDB.py coords.npy sequence.txt
+    python MakePDB.py coords.npy sequence.txt
 
 - coords.npy: NumPy array of shape (n_frames, 3 * total_atoms)
 - sequence.txt: chains separated by '|', residues by commas, e.g.:
