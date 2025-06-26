@@ -5,5 +5,5 @@ python3 relax_bonds_full6.py  -i frame_0000.pdb -o relaxed.pdb --krest_sc $2   -
 
 # The BUILD script:
 time bash build_file.sh 5000 30 700
-
+bash build_file.sh 1000 5 500 (1.16 RMSD)
 
