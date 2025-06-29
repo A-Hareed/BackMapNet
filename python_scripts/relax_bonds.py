@@ -19,11 +19,11 @@ def parse_args():
                    help="Input PDB (heavy atoms only OK)")
     p.add_argument("-o", "--output", default="relaxed.pdb",
                    help="Output PDB with clashes relieved")
-    p.add_argument("--krest", type=float, default=1000.0,
+    p.add_argument("--krest", type=float, default=5000.0,
                    help="Backbone restraint k (kJ/mol/nm^2)")
-    p.add_argument("--maxiter", type=int, default=5000,
+    p.add_argument("--maxiter", type=int, default=150,
                    help="Max minimization iterations")
-    p.add_argument("--tol",     type=float, default=1.0,
+    p.add_argument("--tol",     type=float, default=7.0,
                    help="Minimization tolerance (kJ/mol/nm)")
     return p.parse_args()
 
