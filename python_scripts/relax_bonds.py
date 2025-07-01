@@ -27,7 +27,7 @@ def parse_args():
                    help="Minimization tolerance (kJ/mol/nm)")
     return p.parse_args()
 
-def main():
+def relax_main():
     args = parse_args()
 
     # 1) PDBFixer
@@ -119,7 +119,7 @@ def main():
     print(f"✅ Wrote relaxed PDB to: {args.output}")
 
 if __name__ == "__main__":
-    main()
+    relax_main()
 
 
 # rm -f cluster_EM.npy 
