@@ -9,3 +9,11 @@ time bash build_file.sh 5000 200   Mean RMSD: [1.18]
 
 python3 relax_bonds_full5.py  -i frame_0000.pdb -o relaxed.pdb   --maxiter $2 --tol 7.0 --krest $1 
 
+
+
+
+# Final 
+
+ time bash build_file.sh 5000 150
+
+python3 relax_bonds_full7.py  -i frame_0000.pdb -o relaxed.pdb   --maxiter $2 --tol 7.0 --krest $1 # 6000 --maxiter $1
