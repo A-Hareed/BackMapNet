@@ -13,21 +13,30 @@ from openmm.app import (
 
 def parse_args():
     p = argparse.ArgumentParser(
-        description="Relax clashes & bond lengths, holding backbone in place"
+        description="Relax clashes & bond lengths, holding backbone or all atoms in place"
     )
     p.add_argument("-i", "--input",  required=True,
                    help="Input PDB (heavy atoms only OK)")
     p.add_argument("-o", "--output", default="relaxed.pdb",
                    help="Output PDB with clashes relieved")
-    p.add_argument("--krest", type=float, default=5000.0,
-                   help="Backbone restraint k (kJ/mol/nm^2)")
-    p.add_argument("--maxiter", type=int, default=150,
+    p.add_argument("--krest", type=float, default=1000.0,
+                   help="Default restraint k (kJ/mol/nm^2)")
+    p.add_argument("--maxiter", type=int, default=5000,
                    help="Max minimization iterations")
-    p.add_argument("--tol",     type=float, default=7.0,
+    p.add_argument("--tol",     type=float, default=1.0,
                    help="Minimization tolerance (kJ/mol/nm)")
+    p.add_argument(
+        "--types", default="",
+        help="Comma-separated list of residue types (e.g. ALA,GLY,LYS) to restrain extra-tightly"
+    )
+    p.add_argument(
+        "--krest_type", type=float, default=None,
+        help="If set, use this k for atoms in residues of the specified types"
+    )
     return p.parse_args()
 
-def relax_main():
+
+def main():
     args = parse_args()
 
     # 1) PDBFixer
@@ -41,7 +50,7 @@ def relax_main():
     fixer.addMissingHydrogens(pH=7.0)
 
     # 1.5) Manual disulfide detection & CYX renaming
-    print("🔗 Manually detecting disulfide bonds…")
+    print("🔗 Detecting disulfide bonds…")
     cys_res = [res for res in fixer.topology.residues() if res.name == 'CYS']
     pos_nm  = fixer.positions.value_in_unit(unit.nanometer)
     ss_pairs = []
@@ -63,12 +72,11 @@ def relax_main():
     topo = fixer.topology
     pos  = fixer.positions
 
-    with open("fixed_input.pdb", "w") as f:
-        PDBFile.writeFile(topo, pos, f)
+    PDBFile.writeFile(topo, pos, open("fixed_input.pdb", "w"))
     print("🛠 fixed_input.pdb written with S–S bonds and CYX labels")
 
-    # 2) Build system (include external bonds)
-    print("⚙️  Building OpenMM System...")
+    # 2) Build system
+    print("⚙️ Building OpenMM System...")
     ff = ForceField('amber/protein.ff14SB.xml')
     system = ff.createSystem(
         topo,
@@ -77,7 +85,7 @@ def relax_main():
         ignoreExternalBonds=False
     )
 
-    # 3) Restrain backbone heavy atoms (explicit squares)
+    # 3) Restrain atoms & optional residue-type specific restraints
     restraint = openmm.CustomExternalForce(
         "0.5*k*((x-x0)*(x-x0) + (y-y0)*(y-y0) + (z-z0)*(z-z0))"
     )
@@ -86,16 +94,27 @@ def relax_main():
     system.addForce(restraint)
 
     coords = pos.value_in_unit(unit.nanometer)
-    nrest = 0
-    for atom in topo.atoms():
-        if atom.name in ("N","CA","C","CB"):
-            idx = atom.index
-            x0, y0, z0 = coords[idx]
-            restraint.addParticle(idx, [x0, y0, z0, args.krest])
-            nrest += 1
-    print(f"🔗 Restrained {nrest} backbone atoms with k={args.krest} kJ/mol/nm^2")
+    trusted_types = set([t.strip().upper() for t in args.types.split(",") if t.strip()])
+    total_restrained = 0
 
-    # 4) Simulation setup
+    for atom in topo.atoms():
+        # Restrain every atom in the model
+        idx = atom.index
+        x0, y0, z0 = coords[idx]
+
+        # Determine force constant
+        resname = atom.residue.name.upper()
+        if resname in trusted_types and args.krest_type is not None:
+            k_here = args.krest_type
+        else:
+            k_here = args.krest
+
+        restraint.addParticle(idx, [x0, y0, z0, k_here])
+        total_restrained += 1
+
+    print(f"🔗 Restrained {total_restrained} atoms (with type-specific k where set)")
+
+    # 4) Setup simulation
     integrator = openmm.LangevinIntegrator(
         300*unit.kelvin,
         1.0/unit.picoseconds,
@@ -104,7 +123,7 @@ def relax_main():
     sim = Simulation(topo, system, integrator)
     sim.context.setPositions(pos)
 
-    # 5) Minimize
+    # 5) Minimize energy
     print(f"🔄 Minimizing (maxIter={args.maxiter}, tol={args.tol})…")
     sim.minimizeEnergy(
         tolerance=args.tol * unit.kilojoule_per_mole / unit.nanometer,
@@ -112,18 +131,11 @@ def relax_main():
     )
     print("✅ Minimization complete")
 
-    # 6) Write out relaxed PDB
+    # 6) Write output
     final_pos = sim.context.getState(getPositions=True).getPositions()
     with open(args.output, 'w') as out:
         PDBFile.writeFile(topo, final_pos, out)
     print(f"✅ Wrote relaxed PDB to: {args.output}")
 
 if __name__ == "__main__":
-    relax_main()
-
-
-# rm -f cluster_EM.npy 
-# python3 NEW_pdb2arr_full.py my_minimized.pdb  cluster_EM.npy
-# python3 relax_bonds_full3.py  -i pdb_frames/frame_0000.pdb -o relaxed.pdb
-
-
+    main()
