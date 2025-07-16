@@ -15,7 +15,7 @@ python3 reverse_nonPAD.py yhat_frame_1_IgE.npy sequence_IgE.txt custom_range_IgE
 
 
 # RELAXING BOND ANGLES:
-time bash build_file.sh pdb_frames/frame_0.pdb 1000 1000 0
+time bash build_file.sh pdb_frames/frame_0.pdb 1000 600 0
 
 
 {build_file.sh >>>} 
