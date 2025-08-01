@@ -1,3 +1,4 @@
+# UPDATED the repo name
 # normalise the CG values 
 python3 new_sideChain_Normalisation.py $CG_CLUSTER_SIDE_CHAIN $PDB $CG_CLUSTER_BB_FILE
 
