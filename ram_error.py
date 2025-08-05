@@ -53,9 +53,9 @@ def dihedral(p0, p1, p2, p3):
 coords = YOUR_ARRAY  
 
 # Grab N, CA, C atom coordinate slices:
-N  = coords[:, :, 0, :]   # shape (batch, 32, 3)
-CA = coords[:, :, 1, :]
-C  = coords[:, :, 2, :]
+N  = array_AA[:, :, 0, :]   # shape (batch, 32, 3)
+CA = array_AA[:, :, 1, :]
+C  = array_AA[:, :, 2, :]
 
 # φ (phi) for residues 1…31 uses C(i-1), N(i), CA(i), C(i)
 phi = dihedral(
