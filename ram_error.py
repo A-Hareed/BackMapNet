@@ -17,3 +17,7 @@ np.savez("rama_prior.npz", logp=logp.astype(np.float32),
 
 array_AA = (batch_LAB - custom_min) / custom_range
 np.sum( ((batch_LAB - custom_min) - array_AA*custom_range)))
+
+(2180000, 32, 4, 3)
+
+ 
