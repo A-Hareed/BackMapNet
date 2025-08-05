@@ -14,3 +14,6 @@ logp = np.log(H + 1e-6)  # add small ε to avoid log(0)
 np.savez("rama_prior.npz", logp=logp.astype(np.float32),
                              phi_edges=xedges.astype(np.float32),
                              psi_edges=yedges.astype(np.float32))
+
+array_AA = (batch_LAB - custom_min) / custom_range
+np.sum( ((batch_LAB - custom_min) - array_AA*custom_range)))
