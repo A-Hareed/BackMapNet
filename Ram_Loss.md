@@ -2,22 +2,22 @@ The **Ramachandran-based loss** is a **prior-informed regularization term** adde
 
 ---
 
-## 🧠 **Conceptual Overview**
+##  **Conceptual Overview**
 
-### 📌 What is a Ramachandran Plot?
+###  What is a Ramachandran Plot?
 
 A **Ramachandran plot** shows allowed combinations of backbone torsion angles ϕ (phi) and ψ (psi) for amino acid residues in proteins. Due to steric constraints, only certain regions in this 2D space are occupied by residues in real proteins.
 
 * **Favored regions**: Conformations commonly found in α-helices, β-sheets, etc.
 * **Disallowed regions**: Sterically forbidden due to atomic clashes.
 
-### ❗Problem in ML torsion prediction:
+### Problem in ML torsion prediction:
 
 Models trained purely to minimize RMSE or MAE over torsions may still predict **(ϕ, ψ)** values that are numerically close but **physically implausible** (i.e., outside Ramachandran regions).
 
 ---
 
-## ✅ **Ramachandran Loss: What it does**
+##  **Ramachandran Loss: What it does**
 
 This loss uses a **2D probability density function (PDF)** over (ϕ, ψ) space, computed from a large database of real protein structures (e.g., PDB).
 It adds a penalty term:
@@ -35,7 +35,7 @@ So, if a predicted (ϕ, ψ) falls in a **disallowed** region (where $P$ is very 
 
 ---
 
-## 🔧 **Detailed Steps (from the code)**
+##  **Detailed Steps (from the code)**
 
 ### 1. **Create a prior**:
 
@@ -61,7 +61,7 @@ $$
 
 ---
 
-## 🧪 **Effect of this Loss**
+##  **Effect of this Loss**
 
 * Reduces **Ramachandran outliers** (residues in disallowed regions).
 * Encourages **structural realism** even if numerical error is low.
@@ -69,7 +69,7 @@ $$
 
 ---
 
-## 📚 **Published Work Supporting This**
+##  **Published Work Supporting This**
 
 ### 1. **RamaNet** – Deep learning model for (ϕ, ψ) prediction
 
@@ -101,7 +101,7 @@ Ramachandran priors have been a part of **Rosetta energy functions** for decades
 
 ---
 
-## 🔍 Summary
+##  Summary
 
 | Aspect           | Value                                                                  |
 | ---------------- | ---------------------------------------------------------------------- |
