@@ -84,4 +84,30 @@ psi_full[:, :-1] = psi
 
 # Now phi_full and psi_full are both (batch, 32), with φ[0]=NaN, ψ[31]=NaN.
 
+
+
+        N  = array_AA[:, :, 0, :]   # shape (batch, 32, 3)
+        CA = array_AA[:, :, 1, :]
+        C  = array_AA[:, :, 2, :]
+
+        phi = dihedral(
+            C[:, :-1, :],     # C(i-1)
+            N[:, 1:,  :],     # N(i)
+            CA[:, 1:, :],     # CA(i)
+            C[:, 1:,  :]      # C(i)
+        )
+
+
+        psi = dihedral(
+            N[:, :-1, :],     # N(i)
+            CA[:, :-1, :],    # CA(i)
+            C[:, :-1,  :],    # C(i)
+            N[:, 1:,   :]     # N(i+1)
+        )
+
+        phi_full = np.full((array_AA.shape[0], array_AA.shape[1]), np.nan)
+        phi_full[:, 1:] = phi
+
+        psi_full = np.full((array_AA.shape[0], array_AA.shape[1]), np.nan)
+        psi_full[:, :-1] = psi
  
