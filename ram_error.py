@@ -115,3 +115,37 @@ psi_full[:, :-1] = psi
 
   np.savez(f'torsion_{output_prefix2}_B{i+1}_{pdb_name}_chain{chain_number}.npz',psi=psi_full,phi=phi_full)
 
+
+
+import glob
+
+phi_list = []
+psi_list = []
+
+for file in glob.glob("torsion_*.npz"):
+    data = np.load(file)
+    phi = data['phi']  # shape: (batch, 32)
+    psi = data['psi']
+    
+    # Flatten to 1D arrays, remove NaNs
+    phi_flat = phi.flatten()
+    psi_flat = psi.flatten()
+    valid = ~np.isnan(phi_flat) & ~np.isnan(psi_flat)
+    
+    phi_list.append(phi_flat[valid])
+    psi_list.append(psi_flat[valid])
+
+# Final torsion angle arrays (in degrees)
+all_phi = np.concatenate(phi_list)
+all_psi = np.concatenate(psi_list)
+
+# Define bin edges and histogram
+bins = 72  # e.g. 5° resolution from -180° to +180°
+hist, x_edges, y_edges = np.histogram2d(all_phi, all_psi, bins=[bins, bins], range=[[-180, 180], [-180, 180]])
+
+# Normalize to make it a probability distribution
+pdf = hist / np.sum(hist)
+
+# Optional: Add small epsilon to avoid log(0)
+pdf += 1e-8
+log_pdf = np.log(pdf)
