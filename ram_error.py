@@ -110,4 +110,8 @@ psi_full[:, :-1] = psi
 
         psi_full = np.full((array_AA.shape[0], array_AA.shape[1]), np.nan)
         psi_full[:, :-1] = psi
- 
+
+
+
+  np.savez(f'torsion_{output_prefix2}_B{i+1}_{pdb_name}_chain{chain_number}.npz',psi=psi_full,phi=phi_full)
+
