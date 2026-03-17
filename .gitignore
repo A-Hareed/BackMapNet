@@ -1,22 +1,20 @@
-foo.csv
-*.png
-Book1.xlsx
+# macOS
+.DS_Store
+
+# Python
 __pycache__/
-frame_99990.pdb.gz
-model_dnn_2LR.keras
-preprocessing_Clustering.sh
-temp.txt
-pdb_files/
+*.pyc
 *.npy
-sequence_1J4N.txt
-test_bash.sh
-*.json
-results/
-sequence_1UBQ.txt
-side_chain_model.keras
 *.pdb
-images_draw.drawio
-model_test_1D_conv.keras
-model_test_1D_conv_sideChain.keras
-tmp_xyz.xyz
-images/
+
+# folders
+data/
+logs/
+
+# specific file
+secret.txt
+
+# all env files
+.env
+
+

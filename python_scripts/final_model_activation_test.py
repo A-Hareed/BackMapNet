@@ -1,7 +1,7 @@
 from tensorflow.keras.layers import (
     Input, Reshape, Conv1D, Conv1DTranspose, MaxPooling1D,
     Add, Flatten, Dense, BatchNormalization,
-    SpatialDropout1D, LeakyReLU
+    SpatialDropout1D, LeakyReLU, Concatenate
 )
 from tensorflow.keras.models import Model
 # Define a residual block using 1D convolutions
@@ -58,6 +58,85 @@ def residual_block_1d2(x, filters, dropout_rate=0.0):
         shortcut = Conv1D(filters, kernel_size=1, padding='same')(shortcut)
 
     return Add()([shortcut, y])
+
+
+
+# --- MODIFIED MODEL BUILD FUNCTION ---
+def build_1d_conv_autoencoder_multi_input(
+    input_length, # This is for the main coordinate input (e.g., 96)
+    latent_dim=128, 
+    dropout_rate=0.1
+):
+    # Input 1: The scaled coordinates (X)
+    inputs_coords = Input(shape=(input_length,), name='coords_input')
+
+    # Input 2: The scaling factors (range and min_values)
+    # This assumes 3 for range (max-min) and 3 for min_value for X, Y, Z per fragment
+    inputs_scaling_factors = Input(shape=(1,3), name='scaling_factors_input') 
+
+    # --- Encoder for Coordinates ---
+    x = Reshape((32, 3))(inputs_coords)
+    x = Conv1D(64, kernel_size=1, padding='same')(x)
+    x = BatchNormalization()(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Encoder stage 1
+    x = residual_block_1d2(x, 64, dropout_rate)
+    x = MaxPooling1D(pool_size=2)(x)
+    x = Conv1D(64, kernel_size=3, padding='same')(x)
+    x = BatchNormalization()(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Encoder stage 2
+    x = residual_block_1d2(x, 128, dropout_rate)
+    x = MaxPooling1D(pool_size=2)(x)
+    x = Conv1D(128, kernel_size=3, padding='same')(x)
+    x = BatchNormalization()(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Bottleneck
+    shape_before = x.shape[1:]
+    x = Flatten()(x)
+    x = Dense(latent_dim)(x)
+    x = LeakyReLU(alpha=0.1)(x)
+    x = Dense(shape_before[0] * shape_before[1])(x)
+    x = LeakyReLU(alpha=0.1)(x)
+    x = Reshape(shape_before)(x)
+
+    # Decoder stage 1 (transpose conv)
+    x = Conv1DTranspose(filters=128, kernel_size=4, strides=2, padding='same')(x)
+    x = BatchNormalization()(x)
+    x = LeakyReLU(alpha=0.1)(x)
+    x = residual_block_1d2(x, 128, dropout_rate)
+
+    # Decoder stage 2 (transpose conv)
+    x = Conv1DTranspose(filters=64, kernel_size=4, strides=2, padding='same')(x)
+    x = BatchNormalization()(x)
+    x = LeakyReLU(alpha=0.1)(x)
+    x = residual_block_1d2(x, 64, dropout_rate)
+
+    # Reconstruction layer
+    x = Conv1D(3, kernel_size=1, padding='same')(x)
+
+    # Dense head
+    x = Flatten()(x)
+    x = Dense(512)(x)
+    x = LeakyReLU(alpha=0.1)(x)
+    
+    # Final output of predicted scaled coordinates
+    outputs_coords = Dense(384, activation='linear', name='predicted_coords')(x) # Output is flattened 32*3=96 coordinates
+    range_flat = Reshape((3,))(inputs_scaling_factors)
+    # The model will have two outputs: the predicted coordinates AND the raw scaling factors.
+    # The scaling factors are passed through as an "identity" output, meaning the model just
+    # returns them unchanged from its input. This allows the loss function to access them directly.
+    # Keras models can have multiple outputs.
+#    outputs = [outputs_coords, inputs_scaling_factors] # Order matters here!
+    outputs = Concatenate(axis=-1, name='coords_and_range')([outputs_coords, range_flat])
+
+
+    return Model(inputs=[inputs_coords, inputs_scaling_factors], outputs=outputs)
+
+
 
 def build_1d_conv_autoencoder2(
     input_length, output_features,

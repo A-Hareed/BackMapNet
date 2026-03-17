@@ -1,0 +1,29 @@
+create a bash based exicusion that does the normalisation to prediction. thesse are my scripts for backmapping where each one takes the pdb in coarse-grained to all-atom. Note make sure it fastest possible code run
+
+1. file layout: first normalise the data:
+python3 new_sideChain_Normalisation.py $CG_CLUSTER_SIDE_CHAIN $PDB $CG_CLUSTER_BB_FILE
+
+2. optional evalutation step for AA normalisation: where I normalise the All-atom using files from stage "1" 
+python3 get_scaled_side_chain_model_AA.py $AA_CLUSTER_FILE $PDB $CG_CLUSTER_FILE
+
+3. to get the predicted values use this:
+python3 new_train_test_minmax.py cluster_1_SC_CG_RBF_minMax.npy cluster_PD_1_SC_MinMax.npy masking_input_1.npy 1
+
+
+
+bash run_backmapping_pipeline.sh --pdb Spike --cg-sc ../cluster_2_CG_SC.npy --cg-bb ../cluster_2_CG.npy --run-aa --aa-cluster ../cluster_2_SC.npy
+
+
+
+time bash run_backmapping_pipeline.sh --pdb Spike --cg-sc ../cluster_2_CG_SC.npy --cg-bb ../cluster_2_CG.npy --run-aa --aa-cluster ../cluster_2_SC.npy --full-seq ../sequence_Spike_FULL.txt --sequence ../sequence_Spike.txt --weights EXPERT_M24_best.weights.h5 --cluster 2
+
+
+
+
+python3 reorder_sidechain_pdbs.py  --input-dir selected_pdbs --pattern "*.pdb"  --output-dir reordered_pdbs --workers 4 --report reorder_report.txt
+
+
+python run_model.py "$DEFAULT_F1" "$DEFAULT_F2" "$MASK_FILE" "$CLUST" --weights "$WEIGHTS_FILE" \
+  $([[ "$FILTER_ENABLED" -eq 1 ]] && printf -- "--filter-residue-id %s --gate-col %s" "$FILTER_RESIDUE_ID" "$GATE_COL")
+
+python run_model.py local_Frame2/SIDEcHAIN/feature_SideChain_testing_1J4N_subset.npz local_Frame2/SIDEcHAIN/target_SideChain_testing_1J4N_subset.npz local_Frame2/masking_SIDE/input_Masking_testing_1J4N_localFrame.npz --weights EXPERT_M24_best.weights.h5 
