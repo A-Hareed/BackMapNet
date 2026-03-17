@@ -1,54 +1,140 @@
 # BackMapNet
-Deep-learning protein backmapping from coarse-grained (CG) beads to all-atom (AA) coordinates.
+BackMapNet is a deep-learning framework for reconstructing all-atom protein coordinates from coarse-grained (CG) trajectories.
 
-## 1. Project Overview
-BackMapNet is a generalized deep-learning framework for reconstructing all-atom protein structures from coarse-grained inputs. Instead of relying on global fold-specific reconstruction rules, BackMapNet uses a local reconstruction strategy and decomposes the task into two coordinated models:
-- Backbone reconstruction model
-- Side-chain reconstruction model
+## Overview
+BackMapNet performs local coordinate reconstruction with two coordinated models:
 
-This design improves transferability across proteins with different global structures and sequences. The framework was trained using 12 protein trajectories.
+- A backbone model that predicts `N, CA, C, O` per residue.
+- A side-chain model that predicts residue-specific heavy-atom coordinates in local frames.
 
-**Framework diagram (placeholder)**  
-Add the final architecture/workflow figure for publication here.
+This split improves transferability across proteins with different global folds and sequences.  
+The models were trained on 12 protein trajectories.
+
+Framework figure placeholder:
 
 ```text
-[Placeholder: BackMapNet framework diagram]
+[Add publication-quality workflow diagram here]
 ```
 
-## 2. Installation And Dependencies
-### 2.1 Requirements
-- Bash (macOS/Linux)
-- Python 3
-- `numpy`
-- `tensorflow` / `keras`
-- `h5py` (recommended for model/weight compatibility workflows)
+## Pipeline Summary
+BackMapNet is run through a single public entrypoint: `BackMapNet.sh`.
 
-### 2.2 Recommended environment
+```mermaid
+flowchart LR
+  A["CG PDB frames"] --> B["Step 1: PDB -> cluster arrays"]
+  B --> C["Step 2: Backbone inference + reverse scaling"]
+  B --> D["Step 3: Side-chain local-frame inference"]
+  C --> E["Step 4: Reconstruct combined array"]
+  D --> E
+  E --> F["Step 5: Optional PDB export"]
+  G["AA PDB frames (optional)"] --> B
+```
+
+## Tested Software Matrix
+The repository does not currently include a lockfile; the matrix below reflects the active environment used for this project on March 17, 2026.
+
+| Profile | Conda env | Python | NumPy | TensorFlow | Keras | h5py | Intended use |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Runtime | `mytfenv311` | `3.11.15` | `2.4.2` | `2.20.0` | `3.13.1` | `3.16.0` | BackMapNet pipeline execution |
+
+To print your exact runtime versions:
+
+```bash
+python3 - <<'PY'
+import importlib, sys
+print("python", sys.version.split()[0])
+for name in ["numpy", "tensorflow", "keras", "h5py"]:
+    try:
+        mod = importlib.import_module(name)
+        print(name, mod.__version__)
+    except Exception:
+        print(name, "MISSING")
+PY
+```
+
+## Installation
+Create and activate an environment, then install core dependencies:
+
 ```bash
 conda create -n backmapnet python=3.11 -y
 conda activate backmapnet
-pip install numpy tensorflow h5py
+pip install numpy tensorflow keras h5py
 ```
 
-### 2.3 Repository layout
-- `BackMapNet.sh`: main user-facing entrypoint
-- `bash_scripts/`: stage wrappers used by the main pipeline
-- `python_scripts/`: data conversion, inference, reconstruction, and PDB generation
-- `weights/`: backbone and side-chain model files
+## Repository Layout
+Top-level structure:
 
-For normal usage, run the framework through `BackMapNet.sh` rather than individual internal scripts.
+- `BackMapNet.sh`: public pipeline entrypoint.
+- `run_all.sh`: backward-compatible wrapper that forwards to `BackMapNet.sh`.
+- `bash_scripts/`: stage-level shell workflows.
+- `python_scripts/`: array builders, model evaluation, reconstruction, and PDB writing.
+- `weights/`: backbone/side-chain model files and priors.
 
-## 3. Atomic Mapping Specification
-This section defines how BackMapNet maps CG representations to AA atoms.
+## Input Conventions
+BackMapNet expects frame-indexed PDB filenames:
 
-### 3.1 Backbone mapping
-- CG representation: one backbone bead (`BB`) per residue
-- AA output per residue: `N, CA, C, O`
-- Coordinate expansion: `3 -> 12` coordinates per residue
-- Output order: residue-major, fixed atom order within each residue (`N, CA, C, O`)
+- CG directory (`--cg-pdb-dir`): `CG_frame_<idx>.pdb`
+- Backbone AA directory (`--aa-pdb-dir`, optional): `frame_<idx>.pdb`
+- Side-chain AA directory (`--aa-sc-pdb-dir`, required when full side-chain mode is used): `frame_<idx>_SC.pdb`
 
-### 3.2 Side-chain mapping
-Side-chain reconstruction follows residue-specific heavy-atom templates. For each residue, the atom order is:
+If `--aa-pdb-dir` is provided, BackMapNet automatically switches from CG-only mode to full mode.
+
+## Running BackMapNet
+Show CLI help:
+
+```bash
+bash /absolute/path/to/backbone/BackMapNet.sh --help
+```
+
+### CG-only mode (default)
+```bash
+bash /absolute/path/to/backbone/BackMapNet.sh \
+  --pdb-name IgE \
+  --cg-pdb-dir /data/IgE/cg \
+  --jobs 8
+```
+
+### Full mode (backbone + side-chain targets)
+```bash
+bash /absolute/path/to/backbone/BackMapNet.sh \
+  --pdb-name IgE \
+  --cg-pdb-dir /data/IgE/cg \
+  --aa-pdb-dir /data/IgE/aa_backbone \
+  --aa-sc-pdb-dir /data/IgE/aa_sidechain \
+  --jobs 8
+```
+
+### Optional PDB export
+```bash
+bash /absolute/path/to/backbone/BackMapNet.sh \
+  --pdb-name IgE \
+  --cg-pdb-dir /data/IgE/cg \
+  --write-pdb 1 \
+  --pdb-frame-spec all
+```
+
+## Output Files
+Typical outputs are generated in the run directory:
+
+- `backbone_<PDB>_prediction.npy`
+- `backbone_<PDB>_actual.npy` (full mode only)
+- `sidechain_<PDB>_prediction.npy`
+- `combined_<PDB>_prediction.npy` (CG-only)
+- `combined_<PDB>_actual.npy` (full mode)
+- `pdb_frames_<PDB>/` (when `--write-pdb 1`)
+
+## Atomic Mapping Specification
+This section defines the atom ordering used by reconstruction and PDB writing.
+
+### Backbone mapping
+Per residue:
+
+| CG feature | Reconstructed atoms | Atom order |
+| --- | --- | --- |
+| `BB` bead | Backbone heavy atoms | `N, CA, C, O` |
+
+### Side-chain mapping
+Per residue, side-chain heavy atoms are produced in this fixed order:
 
 | Residue | Side-chain atom order |
 | --- | --- |
@@ -73,67 +159,12 @@ Side-chain reconstruction follows residue-specific heavy-atom templates. For eac
 | TYR | `CB, CG, CD1, CE1, CZ, OH, CE2, CD2` |
 | VAL | `CB, CG1, CG2` |
 
-### 3.3 Local-frame side-chain representation
-Side-chain reconstruction uses local-frame transforms during normalization/denormalization:
-- `R_localFrame_<PDB>_cluster<ID>.npy`: local rotation terms
-- `O_localFrame_<PDB>_cluster<ID>.npy`: local origins/translations
-- `localFrame_META_<PDB>_cluster<ID>.npz`: frame metadata
+### Final merged array order
+In `combined_<PDB>_*.npy`, each residue is assembled as:
 
-### 3.4 Final merged coordinate layout
-Final combined arrays (`combined_<PDB>_prediction.npy` or `combined_<PDB>_actual.npy`) are assembled per residue in chain order:
 1. Backbone atoms: `N, CA, C, O`
-2. Side-chain atoms: residue-specific ordering from Section 3.2
+2. Side-chain atoms: residue-specific order from the table above
 
-Chain segmentation is preserved from user-provided or auto-inferred chain lengths.
-
-## 4. Running The Pipeline (`BackMapNet.sh`)
-`BackMapNet.sh` is the public entrypoint for end-to-end execution.
-
-### 4.1 Command help
-```bash
-bash /absolute/path/to/backbone/BackMapNet.sh --help
-```
-
-### 4.2 Common execution modes
-#### CG-only mode (default)
-```bash
-bash /absolute/path/to/backbone/BackMapNet.sh \
-  --pdb-name IgE \
-  --cg-pdb-dir /data/IgE/cg \
-  --jobs 8
-```
-
-#### Full mode (AA targets provided)
-Providing `--aa-pdb-dir` switches to full mode automatically.
-```bash
-bash /absolute/path/to/backbone/BackMapNet.sh \
-  --pdb-name IgE \
-  --cg-pdb-dir /data/IgE/cg \
-  --aa-pdb-dir /data/IgE/aa_backbone \
-  --aa-sc-pdb-dir /data/IgE/aa_sidechain \
-  --jobs 8
-```
-
-#### Export reconstructed PDB frames
-```bash
-bash /absolute/path/to/backbone/BackMapNet.sh \
-  --pdb-name IgE \
-  --cg-pdb-dir /data/IgE/cg \
-  --write-pdb 1 \
-  --pdb-frame-spec all
-```
-
-#### Debug run on a frame subset
-```bash
-bash /absolute/path/to/backbone/BackMapNet.sh \
-  --pdb-name IgE \
-  --cg-pdb-dir /data/IgE/cg \
-  --frame-range 0-10 \
-  --jobs 4
-```
-
-### 4.3 Typical outputs
-- Backbone prediction arrays
-- Side-chain prediction arrays
-- Merged arrays: `combined_<PDB>_*`
-- Optional PDB outputs: `pdb_frames_<PDB>/`
+## Notes
+- Use `BackMapNet.sh` as the public interface. Internal scripts are implementation details and may change.
+- For publication reproducibility, record your exact environment with the version probe command above.
