@@ -340,19 +340,38 @@ if [[ "$RUN_SIDECHAIN" == "1" ]]; then
   fi
 
   if [[ "$CG_ONLY" == "1" ]]; then
-    RECON_MODE="cg-only"
-    RECON_OUT="combined_${PDB_NAME}_prediction.npy"
+    echo "[BackMapNet] Step 4/5: reconstruct backbone + side-chain arrays (cg-only)"
+    python3 "$RECON_SCRIPT" \
+      --mode "cg-only" \
+      --pdb-name "$PDB_NAME" \
+      --sc-cluster-id "$SC_CLUSTER_ID"
+    echo "[BackMapNet] Reconstructed array: combined_${PDB_NAME}_prediction.npy"
   else
-    RECON_MODE="full"
-    RECON_OUT="combined_${PDB_NAME}_actual.npy"
-  fi
+    echo "[BackMapNet] Step 4/5: reconstruct backbone + side-chain arrays (full + prediction)"
 
-  echo "[BackMapNet] Step 4/5: reconstruct backbone + side-chain arrays (${RECON_MODE})"
-  python3 "$RECON_SCRIPT" \
-    --mode "$RECON_MODE" \
-    --pdb-name "$PDB_NAME" \
-    --sc-cluster-id "$SC_CLUSTER_ID"
-  echo "[BackMapNet] Reconstructed array: $RECON_OUT"
+    # 4a) Full-mode (label) reconstruction.
+    python3 "$RECON_SCRIPT" \
+      --mode "full" \
+      --pdb-name "$PDB_NAME" \
+      --sc-cluster-id "$SC_CLUSTER_ID"
+    echo "[BackMapNet] Reconstructed array: combined_${PDB_NAME}_actual.npy"
+
+    # 4b) Prediction reconstruction in full-mode runs.
+    SEQ_FOR_PRED="sequence_${PDB_NAME}_FULL.txt"
+    if [[ ! -f "$SEQ_FOR_PRED" ]]; then
+      SEQ_FOR_PRED="sequence_${PDB_NAME}.txt"
+    fi
+
+    python3 "$RECON_SCRIPT" \
+      --mode "cg-only" \
+      --pdb-name "$PDB_NAME" \
+      --bb-file "backbone_${PDB_NAME}_prediction.npy" \
+      --sc-file "sidechain_${PDB_NAME}_prediction.npy" \
+      --sequence-file "$SEQ_FOR_PRED" \
+      --output "combined_${PDB_NAME}_prediction.npy" \
+      --sc-cluster-id "$SC_CLUSTER_ID"
+    echo "[BackMapNet] Reconstructed array: combined_${PDB_NAME}_prediction.npy"
+  fi
 else
   echo "[BackMapNet] Step 4/5: reconstruction skipped (requires --run-sidechain 1)"
 fi

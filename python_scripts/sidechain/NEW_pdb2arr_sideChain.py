@@ -27,9 +27,10 @@ try:
                 atom_name = line[12:16].strip()
 
                 # --- Filtering ---
-                # Filter out Hydrogen atoms (names starting with 'H') and the terminal Oxygen 'OXT'
+                # Filter out Hydrogen atoms (names starting with 'H'),
+                # terminal Oxygen 'OXT', and OT* terminal oxygens (e.g., OT1/OT2)
                 # Modify this filtering as needed for your specific requirements
-                if not atom_name.startswith('H') and atom_name != 'OXT':
+                if not atom_name.startswith('H') and atom_name != 'OXT' and 'OT' not in atom_name:
                     try:
                         # --- Coordinate Extraction ---
                         # Extract x, y, z coordinates using fixed-width slicing
