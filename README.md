@@ -92,7 +92,7 @@ bash /absolute/path/to/backbone/BackMapNet.sh \
   --jobs 8
 ```
 
-### Full mode (backbone + side-chain targets)
+### Full mode (backbone + side-chain targets) Evaluation 
 ```bash
 bash /absolute/path/to/backbone/BackMapNet.sh \
   --pdb-name IgE \
