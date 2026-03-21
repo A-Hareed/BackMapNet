@@ -10,11 +10,9 @@ BackMapNet performs local coordinate reconstruction with two coordinated models:
 This split improves transferability across proteins with different global folds and sequences.  
 The models were trained on 12 protein trajectories.
 
-Framework figure placeholder:
 
-```text
-[Add publication-quality workflow diagram here]
-```
+![Alt text](Framework_labelled.png) 
+
 
 ## Pipeline Summary
 BackMapNet is run through a single public entrypoint: `BackMapNet.sh`.
