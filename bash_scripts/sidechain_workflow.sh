@@ -155,10 +155,18 @@ PY
 fi
 
 echo "[sidechain] Stage 4/4: denormalize"
+DENORM_DEFAULT_FLAGS=(
+  --no-bond-fix
+  --ring-fix
+  --ring-template-source ccd
+  --ring-template-cache-dir .ring_template_cache
+  --ring-fix-alpha 0.5
+)
+
 if [[ -f expert_filter_keep_group_idx.npy ]]; then
-  python3 "$SC_PY_DIR/denorm.py" "$PRED_FILE" "$SC_SEQ_FILE" "$CG_SC_FILE" "masking_input_${SC_CLUSTER_ID}.npy" "$PDB_NAME" "$SC_CLUSTER_ID" "sidechain_${PDB_NAME}_prediction.npy" expert_filter_keep_group_idx.npy
+  python3 "$SC_PY_DIR/denorm.py" "$PRED_FILE" "$SC_SEQ_FILE" "$CG_SC_FILE" "masking_input_${SC_CLUSTER_ID}.npy" "$PDB_NAME" "$SC_CLUSTER_ID" "sidechain_${PDB_NAME}_prediction.npy" expert_filter_keep_group_idx.npy "${DENORM_DEFAULT_FLAGS[@]}"
 else
-  python3 "$SC_PY_DIR/denorm.py" "$PRED_FILE" "$SC_SEQ_FILE" "$CG_SC_FILE" "masking_input_${SC_CLUSTER_ID}.npy" "$PDB_NAME" "$SC_CLUSTER_ID" "sidechain_${PDB_NAME}_prediction.npy"
+  python3 "$SC_PY_DIR/denorm.py" "$PRED_FILE" "$SC_SEQ_FILE" "$CG_SC_FILE" "masking_input_${SC_CLUSTER_ID}.npy" "$PDB_NAME" "$SC_CLUSTER_ID" "sidechain_${PDB_NAME}_prediction.npy" "${DENORM_DEFAULT_FLAGS[@]}"
 fi
 
 echo "[sidechain] Done: sidechain_${PDB_NAME}_prediction.npy"

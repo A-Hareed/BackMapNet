@@ -221,12 +221,20 @@ fi
 require_file "$PRED_FILE"
 require_file "$MASK_FILE"
 
+DENORM_DEFAULT_FLAGS=(
+  --no-bond-fix
+  --ring-fix
+  --ring-template-source ccd
+  --ring-template-cache-dir .ring_template_cache
+  --ring-fix-alpha 0.5
+)
+
 if [[ -f "$KEEP_IDX_FILE" ]]; then
   run_step "Stage 4/4: denormalize + unpad" \
-    "$PYTHON_BIN" denorm.py "$PRED_FILE" "$SEQUENCE_FILE" "$CG_SC" "$MASK_FILE" "$PDB" "$CLUST" "$OUT_FILE" "$KEEP_IDX_FILE"
+    "$PYTHON_BIN" denorm.py "$PRED_FILE" "$SEQUENCE_FILE" "$CG_SC" "$MASK_FILE" "$PDB" "$CLUST" "$OUT_FILE" "$KEEP_IDX_FILE" "${DENORM_DEFAULT_FLAGS[@]}"
 else
   run_step "Stage 4/4: denormalize + unpad" \
-    "$PYTHON_BIN" denorm.py "$PRED_FILE" "$SEQUENCE_FILE" "$CG_SC" "$MASK_FILE" "$PDB" "$CLUST" "$OUT_FILE"
+    "$PYTHON_BIN" denorm.py "$PRED_FILE" "$SEQUENCE_FILE" "$CG_SC" "$MASK_FILE" "$PDB" "$CLUST" "$OUT_FILE" "${DENORM_DEFAULT_FLAGS[@]}"
 fi
 
 echo ""
