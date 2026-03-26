@@ -14,19 +14,6 @@ The models were trained on 12 protein trajectories.
 ![Alt text](Framework_labelled.png) 
 
 
-## Pipeline Summary
-BackMapNet is run through a single public entrypoint: `BackMapNet.sh`.
-
-```mermaid
-flowchart LR
-  A["CG PDB frames"] --> B["Step 1: PDB -> cluster arrays"]
-  B --> C["Step 2: Backbone inference + reverse scaling"]
-  B --> D["Step 3: Side-chain local-frame inference"]
-  C --> E["Step 4: Reconstruct combined array"]
-  D --> E
-  E --> F["Step 5: Optional PDB export"]
-  G["AA PDB frames (optional)"] --> B
-```
 
 ## Tested Software Matrix
 The repository does not currently include a lockfile; the matrix below reflects the active environment used for this project on March 17, 2026.
@@ -163,6 +150,4 @@ In `combined_<PDB>_*.npy`, each residue is assembled as:
 1. Backbone atoms: `N, CA, C, O`
 2. Side-chain atoms: residue-specific order from the table above
 
-## Notes
-- Use `BackMapNet.sh` as the public interface. Internal scripts are implementation details and may change.
-- For publication reproducibility, record your exact environment with the version probe command above.
+
