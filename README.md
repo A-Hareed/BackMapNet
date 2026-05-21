@@ -151,3 +151,9 @@ In `combined_<PDB>_*.npy`, each residue is assembled as:
 2. Side-chain atoms: residue-specific order from the table above
 
 
+## License
+This project is licensed under the MIT License.
+You may use, copy, modify, merge, publish, distribute, sublicense, and/or sell this software, provided the copyright notice and license text are included in copies or substantial portions.
+See [LICENSE](LICENSE) for full terms.
+
+
