@@ -1,7 +1,7 @@
 # BackMapNet
 BackMapNet is a deep-learning framework for reconstructing all-atom protein coordinates from coarse-grained (CG) trajectories.
 
-A preprint describing BackMapNet is available on ChemRxiv: **“Generalised Protein BackMapper Using Machine Learning Models”** — [ChemRxiv preprint]([https://doi.org/10.26434/chemrxiv.15004975/v1]).
+A preprint describing BackMapNet is available on ChemRxiv: **“Generalised Protein BackMapper Using Machine Learning Models”** — [ChemRxiv preprint](https://doi.org/10.26434/chemrxiv.15004975/v1).
 
 ## Overview
 BackMapNet performs local coordinate reconstruction with two coordinated models:
