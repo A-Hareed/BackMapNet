@@ -10,7 +10,7 @@ __pycache__/
 # folders
 data/
 logs/
-
+tmp/
 # specific file
 secret.txt
 
