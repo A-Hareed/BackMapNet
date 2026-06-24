@@ -17,37 +17,41 @@ You can override any default input/output path using flags.
 
 import argparse
 import os
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 
 
-# Side-chain heavy-atom counts per residue.
-NO_ATOMS = {
-    "CYS": 2,
-    "ALA": 1,
-    "MET": 4,
-    "ASP": 4,
-    "ASN": 4,
-    "ARG": 7,
-    "GLN": 5,
-    "GLU": 5,
-    "HIS": 6,
-    "ILE": 4,
-    "LEU": 4,
-    "LYS": 5,
-    "PHE": 7,
-    "PRO": 3,
-    "SER": 2,
-    "THR": 3,
-    "TRP": 10,
-    "TYR": 8,
-    "VAL": 3,
-    "GLY": 0,
+# Side-chain atom order must match MakePDB_temp.py / reorder_sidechain_pdbs2.py.
+SIDECHAIN_ATOMS: Dict[str, List[str]] = {
+    "LYS": ["CB", "CG", "CD", "CE", "NZ"],
+    "ALA": ["CB"],
+    "CYS": ["CB", "SG"],
+    "GLN": ["CB", "CG", "CD", "OE1", "NE2"],
+    "VAL": ["CB", "CG1", "CG2"],
+    "ASN": ["CB", "CG", "OD1", "ND2"],
+    "LEU": ["CB", "CG", "CD1", "CD2"],
+    "THR": ["CB", "CG2", "OG1"],
+    "PHE": ["CB", "CG", "CD1", "CE1", "CZ", "CE2", "CD2"],
+    "SER": ["CB", "OG"],
+    "PRO": ["CD", "CG", "CB"],
+    "TYR": ["CB", "CG", "CD1", "CE1", "CZ", "OH", "CE2", "CD2"],
+    "HIS": ["CB", "CG", "ND1", "CE1", "NE2", "CD2"],
+    "ARG": ["CB", "CG", "CD", "NE", "CZ", "NH1", "NH2"],
+    "TRP": ["CB", "CG", "CD1", "NE1", "CE2", "CZ2", "CH2", "CZ3", "CE3", "CD2"],
+    "ILE": ["CB", "CG2", "CG1", "CD"],
+    "GLU": ["CB", "CG", "CD", "OE1", "OE2"],
+    "ASP": ["CB", "CG", "OD1", "OD2"],
+    "MET": ["CB", "CG", "SD", "CE"],
+    "GLY": [],
 }
+
+NO_ATOMS = {res: len(atoms) for res, atoms in SIDECHAIN_ATOMS.items()}
 
 BB_ATOMS_PER_RES = 4  # N, CA, C, O
 COORDS_PER_ATOM = 3
+IDEAL_CA_CB = 1.526
+IDEAL_C_O = 1.229
 
 
 def parse_args() -> argparse.Namespace:
@@ -90,6 +94,44 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=2,
         help="Used by full-mode default side-chain AA file: cluster_<id>_SC.npy",
+    )
+    parser.add_argument(
+        "--fix-anchor-bonds",
+        action="store_true",
+        help="Apply mild CA-CB and C-O bond-length correction after reconstruction.",
+    )
+    parser.add_argument(
+        "--ca-cb-mode",
+        choices=["move-ca", "move-sidechain", "split"],
+        default="move-ca",
+        help=(
+            "CA-CB correction mode. move-ca anchors CB and moves CA; "
+            "move-sidechain anchors CA and moves the full sidechain; split moves both."
+        ),
+    )
+    parser.add_argument(
+        "--ca-cb-threshold",
+        type=float,
+        default=0.3,
+        help="Only correct CA-CB when absolute length error is above this Angstrom threshold.",
+    )
+    parser.add_argument(
+        "--ca-cb-alpha",
+        type=float,
+        default=0.2,
+        help="CA-CB correction strength in [0,1].",
+    )
+    parser.add_argument(
+        "--c-o-threshold",
+        type=float,
+        default=0.3,
+        help="Only correct C-O when absolute length error is above this Angstrom threshold.",
+    )
+    parser.add_argument(
+        "--c-o-alpha",
+        type=float,
+        default=0.5,
+        help="C-O correction strength in [0,1].",
     )
     return parser.parse_args()
 
@@ -242,6 +284,161 @@ def reconstruct_full_array(
     return np.concatenate(blocks, axis=1).astype(np.float32, copy=False)
 
 
+def _validate_alpha_threshold(alpha: float, threshold: float, label: str) -> None:
+    if alpha < 0.0 or alpha > 1.0:
+        raise ValueError(f"{label} alpha must be in [0,1], got {alpha}")
+    if threshold < 0.0:
+        raise ValueError(f"{label} threshold must be >= 0, got {threshold}")
+
+
+def _pull_atom_to_ideal_distance(
+    coords3: np.ndarray,
+    anchor_idx: int,
+    moving_idx: int,
+    ideal_len: float,
+    threshold: float,
+    alpha: float,
+    eps: float = 1e-8,
+) -> int:
+    vec = coords3[:, moving_idx, :] - coords3[:, anchor_idx, :]
+    dist = np.sqrt(np.sum(vec * vec, axis=1, keepdims=True))
+    err = np.abs(dist - np.float32(ideal_len))
+    apply = (dist > eps) & (err > np.float32(threshold))
+    if not np.any(apply):
+        return 0
+
+    target = coords3[:, anchor_idx, :] + vec * (np.float32(ideal_len) / (dist + np.float32(eps)))
+    delta = np.float32(alpha) * (target - coords3[:, moving_idx, :])
+    coords3[:, moving_idx, :] = np.where(apply, coords3[:, moving_idx, :] + delta, coords3[:, moving_idx, :])
+    return int(np.count_nonzero(apply))
+
+
+def _move_group_to_ideal_distance(
+    coords3: np.ndarray,
+    anchor_idx: int,
+    moving_idx: int,
+    group_idxs: List[int],
+    ideal_len: float,
+    threshold: float,
+    alpha: float,
+    eps: float = 1e-8,
+) -> int:
+    vec = coords3[:, moving_idx, :] - coords3[:, anchor_idx, :]
+    dist = np.sqrt(np.sum(vec * vec, axis=1, keepdims=True))
+    err = np.abs(dist - np.float32(ideal_len))
+    apply = (dist > eps) & (err > np.float32(threshold))
+    if not np.any(apply):
+        return 0
+
+    target = coords3[:, anchor_idx, :] + vec * (np.float32(ideal_len) / (dist + np.float32(eps)))
+    delta = np.float32(alpha) * (target - coords3[:, moving_idx, :])
+    for idx in group_idxs:
+        coords3[:, idx, :] = np.where(apply, coords3[:, idx, :] + delta, coords3[:, idx, :])
+    return int(np.count_nonzero(apply))
+
+
+def _split_ca_cb_correction(
+    coords3: np.ndarray,
+    ca_idx: int,
+    cb_idx: int,
+    sidechain_idxs: List[int],
+    ideal_len: float,
+    threshold: float,
+    alpha: float,
+    eps: float = 1e-8,
+) -> int:
+    vec = coords3[:, ca_idx, :] - coords3[:, cb_idx, :]
+    dist = np.sqrt(np.sum(vec * vec, axis=1, keepdims=True))
+    err = np.abs(dist - np.float32(ideal_len))
+    apply = (dist > eps) & (err > np.float32(threshold))
+    if not np.any(apply):
+        return 0
+
+    midpoint = 0.5 * (coords3[:, ca_idx, :] + coords3[:, cb_idx, :])
+    unit = vec / (dist + np.float32(eps))
+    target_ca = midpoint + 0.5 * np.float32(ideal_len) * unit
+    target_cb = midpoint - 0.5 * np.float32(ideal_len) * unit
+    ca_delta = np.float32(alpha) * (target_ca - coords3[:, ca_idx, :])
+    sc_delta = np.float32(alpha) * (target_cb - coords3[:, cb_idx, :])
+
+    coords3[:, ca_idx, :] = np.where(apply, coords3[:, ca_idx, :] + ca_delta, coords3[:, ca_idx, :])
+    for idx in sidechain_idxs:
+        coords3[:, idx, :] = np.where(apply, coords3[:, idx, :] + sc_delta, coords3[:, idx, :])
+    return int(np.count_nonzero(apply))
+
+
+def fix_anchor_bonds(
+    full_arr: np.ndarray,
+    sequence: List[str],
+    ca_cb_mode: str,
+    ca_cb_threshold: float,
+    ca_cb_alpha: float,
+    c_o_threshold: float,
+    c_o_alpha: float,
+) -> Tuple[np.ndarray, int, int]:
+    _validate_alpha_threshold(ca_cb_alpha, ca_cb_threshold, "CA-CB")
+    _validate_alpha_threshold(c_o_alpha, c_o_threshold, "C-O")
+
+    coords3 = full_arr.reshape(full_arr.shape[0], -1, 3).copy()
+    atom_offset = 0
+    ca_cb_fixed = 0
+    c_o_fixed = 0
+
+    for res in sequence:
+        ca_idx = atom_offset + 1
+        c_idx = atom_offset + 2
+        o_idx = atom_offset + 3
+        sc_atoms = SIDECHAIN_ATOMS[res]
+        sidechain_idxs = [atom_offset + BB_ATOMS_PER_RES + i for i in range(len(sc_atoms))]
+
+        c_o_fixed += _pull_atom_to_ideal_distance(
+            coords3=coords3,
+            anchor_idx=c_idx,
+            moving_idx=o_idx,
+            ideal_len=IDEAL_C_O,
+            threshold=c_o_threshold,
+            alpha=c_o_alpha,
+        )
+
+        if "CB" in sc_atoms:
+            cb_idx = atom_offset + BB_ATOMS_PER_RES + sc_atoms.index("CB")
+            if ca_cb_mode == "move-ca":
+                ca_cb_fixed += _pull_atom_to_ideal_distance(
+                    coords3=coords3,
+                    anchor_idx=cb_idx,
+                    moving_idx=ca_idx,
+                    ideal_len=IDEAL_CA_CB,
+                    threshold=ca_cb_threshold,
+                    alpha=ca_cb_alpha,
+                )
+            elif ca_cb_mode == "move-sidechain":
+                ca_cb_fixed += _move_group_to_ideal_distance(
+                    coords3=coords3,
+                    anchor_idx=ca_idx,
+                    moving_idx=cb_idx,
+                    group_idxs=sidechain_idxs,
+                    ideal_len=IDEAL_CA_CB,
+                    threshold=ca_cb_threshold,
+                    alpha=ca_cb_alpha,
+                )
+            elif ca_cb_mode == "split":
+                ca_cb_fixed += _split_ca_cb_correction(
+                    coords3=coords3,
+                    ca_idx=ca_idx,
+                    cb_idx=cb_idx,
+                    sidechain_idxs=sidechain_idxs,
+                    ideal_len=IDEAL_CA_CB,
+                    threshold=ca_cb_threshold,
+                    alpha=ca_cb_alpha,
+                )
+            else:
+                raise ValueError(f"Unknown CA-CB correction mode: {ca_cb_mode}")
+
+        atom_offset += BB_ATOMS_PER_RES + len(sc_atoms)
+
+    return coords3.reshape(full_arr.shape).astype(np.float32, copy=False), ca_cb_fixed, c_o_fixed
+
+
 def main() -> None:
     args = parse_args()
     bb_file, sc_file, seq_file, out_file = _resolve_io(args)
@@ -251,6 +448,18 @@ def main() -> None:
     sc_arr = _load_2d(sc_file, "Side-chain array")
 
     full_arr = reconstruct_full_array(bb_arr, sc_arr, sequence)
+    ca_cb_fixed = 0
+    c_o_fixed = 0
+    if args.fix_anchor_bonds:
+        full_arr, ca_cb_fixed, c_o_fixed = fix_anchor_bonds(
+            full_arr=full_arr,
+            sequence=sequence,
+            ca_cb_mode=args.ca_cb_mode,
+            ca_cb_threshold=args.ca_cb_threshold,
+            ca_cb_alpha=args.ca_cb_alpha,
+            c_o_threshold=args.c_o_threshold,
+            c_o_alpha=args.c_o_alpha,
+        )
 
     out_dir = os.path.dirname(os.path.abspath(out_file))
     if out_dir:
@@ -261,6 +470,13 @@ def main() -> None:
     print("Backbone:", bb_file, bb_arr.shape)
     print("Sidechain:", sc_file, sc_arr.shape)
     print("Sequence:", seq_file, f"residues={len(sequence)}")
+    if args.fix_anchor_bonds:
+        print(
+            "Anchor-bond correction:",
+            f"CA-CB fixed={ca_cb_fixed}",
+            f"C-O fixed={c_o_fixed}",
+            f"CA-CB mode={args.ca_cb_mode}",
+        )
     print("Saved:", out_file, full_arr.shape)
 
 

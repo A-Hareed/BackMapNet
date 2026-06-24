@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SC_PY_DIR="$ROOT_DIR/python_scripts/sidechain"
+DENORM_SCRIPT="$ROOT_DIR/python_scripts/denorm.py"
 
 if [[ $# -lt 2 ]]; then
   echo "Usage: bash sidechain_workflow.sh <pdb_name> <chain_lengths_csv> [sc_cluster_id] [cg_only]"
@@ -34,6 +35,7 @@ require_file "$CG_SC_FILE"
 require_file "$CG_BB_FILE"
 require_file "$FULL_SEQ_FILE"
 require_file "$SC_SEQ_FILE"
+require_file "$DENORM_SCRIPT"
 
 SEGMENT_STARTS="$(python3 - "$CHAIN_LENGTHS" <<'PY'
 import sys
@@ -156,17 +158,18 @@ fi
 
 echo "[sidechain] Stage 4/4: denormalize"
 DENORM_DEFAULT_FLAGS=(
-  --no-bond-fix
+  --bond-fix-threshold 0.3
+  --bond-fix-non-ring-only
   --ring-fix
   --ring-template-source ccd
   --ring-template-cache-dir .ring_template_cache
-  --ring-fix-alpha 0.5
+  --ring-fix-alpha 1.0
 )
 
 if [[ -f expert_filter_keep_group_idx.npy ]]; then
-  python3 "$SC_PY_DIR/denorm.py" "$PRED_FILE" "$SC_SEQ_FILE" "$CG_SC_FILE" "masking_input_${SC_CLUSTER_ID}.npy" "$PDB_NAME" "$SC_CLUSTER_ID" "sidechain_${PDB_NAME}_prediction.npy" expert_filter_keep_group_idx.npy "${DENORM_DEFAULT_FLAGS[@]}"
+  python3 "$DENORM_SCRIPT" "$PRED_FILE" "$SC_SEQ_FILE" "$CG_SC_FILE" "masking_input_${SC_CLUSTER_ID}.npy" "$PDB_NAME" "$SC_CLUSTER_ID" "sidechain_${PDB_NAME}_prediction.npy" expert_filter_keep_group_idx.npy "${DENORM_DEFAULT_FLAGS[@]}"
 else
-  python3 "$SC_PY_DIR/denorm.py" "$PRED_FILE" "$SC_SEQ_FILE" "$CG_SC_FILE" "masking_input_${SC_CLUSTER_ID}.npy" "$PDB_NAME" "$SC_CLUSTER_ID" "sidechain_${PDB_NAME}_prediction.npy" "${DENORM_DEFAULT_FLAGS[@]}"
+  python3 "$DENORM_SCRIPT" "$PRED_FILE" "$SC_SEQ_FILE" "$CG_SC_FILE" "masking_input_${SC_CLUSTER_ID}.npy" "$PDB_NAME" "$SC_CLUSTER_ID" "sidechain_${PDB_NAME}_prediction.npy" "${DENORM_DEFAULT_FLAGS[@]}"
 fi
 
 echo "[sidechain] Done: sidechain_${PDB_NAME}_prediction.npy"

@@ -6,7 +6,12 @@ import re
 import shlex
 import urllib.request
 import urllib.error
-from bond_lookup import ATOM_ORDER
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SIDECHAIN_DIR = os.path.join(SCRIPT_DIR, "sidechain")
+if SIDECHAIN_DIR not in sys.path:
+    sys.path.insert(0, SIDECHAIN_DIR)
+from reorder_sidechain_pdbs2 import ATOM_ORDER
 from ff14sb_bond_lengths import ff14sb_sidechain_bond_lengths
 
 """
@@ -367,7 +372,6 @@ def hard_correct_atom_bonds_in_angstrom(
     return atom_xyz
 
 
-# Ring atom sets: sidechain ring atoms only (explicitly excludes CA).
 RING_ATOMS_BY_RES = {
     "PHE": ["CG", "CD1", "CE1", "CZ", "CE2", "CD2"],
     "HIS": ["CG", "ND1", "CE1", "NE2", "CD2"],

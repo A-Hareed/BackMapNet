@@ -60,6 +60,7 @@ Core options:
   --fresh-start <0|1>           1 = rebuild cluster files from scratch (default: 1)
   --cg-pdb-dir <dir>            Directory with CG_frame_<idx>.pdb files (default: .)
                                 Relative paths are resolved from current directory, then repo root.
+  --cg-pdb-file <file>          Single CG PDB file with any name; internally staged as CG_frame_0.pdb
   --aa-pdb-dir <dir>            Directory with frame_<idx>.pdb files (auto-switches cg_only=0)
 
 Backbone model:
@@ -72,6 +73,9 @@ Side-chain options:
   --aa-sc-pdb-dir <dir>         Directory with frame_<idx>_SC.pdb files
                                 Required when --aa-pdb-dir is provided and side-chain is enabled.
   --sidechain-cluster-id <id>   Side-chain cluster id token (default: 2)
+                                Side-chain model path is controlled by env:
+                                SIDECHAIN_MODEL_PATH (default: weights/SINGLE_BASE_bond_portable.keras)
+                                Optional model_40 manifest via SIDECHAIN_MODEL40_MANIFEST
 
 PDB export options:
   --write-pdb <0|1>             Write PDB frame(s) from reconstructed combined array (default: 0)
@@ -107,6 +111,7 @@ LOAD_FULL_MODEL="0"
 CG_ONLY="1"
 FRESH_START="1"
 CG_PDB_DIR="."
+CG_PDB_FILE=""
 AA_PDB_DIR=""
 
 RUN_SIDECHAIN="1"
@@ -116,6 +121,13 @@ WRITE_PDB="0"
 PDB_OUTPUT_DIR=""
 PDB_FRAME_SPEC="all"
 PDB_FILENAME_TEMPLATE="frame_BackMapNet_V3_{frame}.pdb"
+
+RECON_FIX_ANCHOR_BONDS="${RECON_FIX_ANCHOR_BONDS:-1}"
+RECON_CA_CB_MODE="${RECON_CA_CB_MODE:-move-ca}"
+RECON_CA_CB_THRESHOLD="${RECON_CA_CB_THRESHOLD:-0.3}"
+RECON_CA_CB_ALPHA="${RECON_CA_CB_ALPHA:-0.2}"
+RECON_C_O_THRESHOLD="${RECON_C_O_THRESHOLD:-0.3}"
+RECON_C_O_ALPHA="${RECON_C_O_ALPHA:-0.5}"
 
 # Backward compatibility: positional invocation.
 if [[ $# -gt 0 && "$1" != -* ]]; then
@@ -148,6 +160,8 @@ else
         FRESH_START="$2"; shift 2 ;;
       --cg-pdb-dir)
         CG_PDB_DIR="$2"; shift 2 ;;
+      --cg-pdb-file)
+        CG_PDB_FILE="$2"; shift 2 ;;
       --aa-pdb-dir)
         AA_PDB_DIR="$2"; shift 2 ;;
       --run-sidechain)
@@ -213,6 +227,60 @@ fi
 if [[ "$WRITE_PDB" != "0" && "$WRITE_PDB" != "1" ]]; then
   echo "write-pdb must be 0 or 1"
   exit 1
+fi
+
+if [[ "$RECON_FIX_ANCHOR_BONDS" != "0" && "$RECON_FIX_ANCHOR_BONDS" != "1" ]]; then
+  echo "RECON_FIX_ANCHOR_BONDS must be 0 or 1"
+  exit 1
+fi
+
+cleanup_single_cg_stage() {
+  if [[ -n "${SINGLE_CG_STAGE_DIR:-}" && -d "${SINGLE_CG_STAGE_DIR:-}" ]]; then
+    rm -rf "$SINGLE_CG_STAGE_DIR"
+  fi
+}
+trap cleanup_single_cg_stage EXIT
+
+if [[ "$RUN_SIDECHAIN" == "1" ]]; then
+  DEFAULT_SIDECHAIN_MODEL_PATH="$ROOT_DIR/weights/SINGLE_BASE_bond_portable.keras"
+  DEFAULT_SIDECHAIN_MODEL40_MANIFEST="$ROOT_DIR/weights/SINGLE_BASE_bond_manifest.json"
+
+  if [[ -z "${SIDECHAIN_MODEL_PATH:-}" ]]; then
+    SIDECHAIN_MODEL_PATH="$DEFAULT_SIDECHAIN_MODEL_PATH"
+  fi
+  if ! SIDECHAIN_MODEL_PATH="$(resolve_existing_file "$SIDECHAIN_MODEL_PATH" "sidechain_model_path")"; then
+    exit 1
+  fi
+  export SIDECHAIN_MODEL_PATH
+
+  if [[ -z "${SIDECHAIN_MODEL40_MANIFEST:-}" && -f "$DEFAULT_SIDECHAIN_MODEL40_MANIFEST" ]]; then
+    SIDECHAIN_MODEL40_MANIFEST="$DEFAULT_SIDECHAIN_MODEL40_MANIFEST"
+  fi
+  if [[ -n "${SIDECHAIN_MODEL40_MANIFEST:-}" ]]; then
+    if ! SIDECHAIN_MODEL40_MANIFEST="$(resolve_existing_file "$SIDECHAIN_MODEL40_MANIFEST" "sidechain_model40_manifest")"; then
+      exit 1
+    fi
+    export SIDECHAIN_MODEL40_MANIFEST
+  fi
+fi
+
+if [[ -n "$CG_PDB_FILE" ]]; then
+  if [[ "$FRAME_RANGE" != "auto" && "$FRAME_RANGE" != "0" ]]; then
+    echo "When --cg-pdb-file is used, --frame-range must be auto or 0 because the file is staged as CG_frame_0.pdb."
+    exit 1
+  fi
+  if ! CG_PDB_FILE="$(resolve_existing_file "$CG_PDB_FILE" "cg_pdb_file")"; then
+    exit 1
+  fi
+
+  SINGLE_CG_STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/backmapnet_single_cg.XXXXXX")"
+  if ! ln -s "$CG_PDB_FILE" "$SINGLE_CG_STAGE_DIR/CG_frame_0.pdb" 2>/dev/null; then
+    cp "$CG_PDB_FILE" "$SINGLE_CG_STAGE_DIR/CG_frame_0.pdb"
+  fi
+
+  CG_PDB_DIR="$SINGLE_CG_STAGE_DIR"
+  FRAME_RANGE="0"
+  echo "[BackMapNet] Single CG PDB staged as: $CG_PDB_DIR/CG_frame_0.pdb"
 fi
 
 if ! CG_PDB_DIR="$(resolve_existing_dir "$CG_PDB_DIR" "cg_pdb_dir")"; then
@@ -327,6 +395,10 @@ bash "$BASH_DIR/workflow.sh" "$PDB_NAME" "$CHAIN_LENGTHS" auto "$JOBS" "$MODEL_P
 
 if [[ "$RUN_SIDECHAIN" == "1" ]]; then
   echo "[BackMapNet] Step 3/5: side-chain pipeline"
+  echo "[BackMapNet] Side-chain model: $SIDECHAIN_MODEL_PATH"
+  if [[ -n "${SIDECHAIN_MODEL40_MANIFEST:-}" ]]; then
+    echo "[BackMapNet] Side-chain model_40 manifest: $SIDECHAIN_MODEL40_MANIFEST"
+  fi
   bash "$BASH_DIR/sidechain_workflow.sh" "$PDB_NAME" "$CHAIN_LENGTHS" "$SC_CLUSTER_ID" "$CG_ONLY"
 else
   echo "[BackMapNet] Step 3/5: side-chain pipeline skipped (--run-sidechain 0)"
@@ -339,9 +411,23 @@ if [[ "$RUN_SIDECHAIN" == "1" ]]; then
     exit 1
   fi
 
+  run_prediction_reconstruct() {
+    if [[ "$RECON_FIX_ANCHOR_BONDS" == "1" ]]; then
+      python3 "$RECON_SCRIPT" "$@" \
+        --fix-anchor-bonds \
+        --ca-cb-mode "$RECON_CA_CB_MODE" \
+        --ca-cb-threshold "$RECON_CA_CB_THRESHOLD" \
+        --ca-cb-alpha "$RECON_CA_CB_ALPHA" \
+        --c-o-threshold "$RECON_C_O_THRESHOLD" \
+        --c-o-alpha "$RECON_C_O_ALPHA"
+    else
+      python3 "$RECON_SCRIPT" "$@"
+    fi
+  }
+
   if [[ "$CG_ONLY" == "1" ]]; then
     echo "[BackMapNet] Step 4/5: reconstruct backbone + side-chain arrays (cg-only)"
-    python3 "$RECON_SCRIPT" \
+    run_prediction_reconstruct \
       --mode "cg-only" \
       --pdb-name "$PDB_NAME" \
       --sc-cluster-id "$SC_CLUSTER_ID"
@@ -362,7 +448,7 @@ if [[ "$RUN_SIDECHAIN" == "1" ]]; then
       SEQ_FOR_PRED="sequence_${PDB_NAME}.txt"
     fi
 
-    python3 "$RECON_SCRIPT" \
+    run_prediction_reconstruct \
       --mode "cg-only" \
       --pdb-name "$PDB_NAME" \
       --bb-file "backbone_${PDB_NAME}_prediction.npy" \

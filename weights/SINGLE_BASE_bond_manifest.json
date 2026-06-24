@@ -1,0 +1,38 @@
+{
+  "model_tag": "SINGLE_BASE",
+  "feature_dim": 38,
+  "target_dim": 15,
+  "n_atoms": 5,
+  "loss_type": "coord_plus_weighted_bond",
+  "bond_lookup2_path": "/net/scratch/p36728ah/CSF3_DATASET/MinMax_scaling/side_chain_dataset_copy3/side_chain_dataset_copy2/side_chain_dataset/bond_lookup.py",
+  "bond_table_stats": {
+    "num_templates": 30,
+    "max_bonds_per_template": 4,
+    "routed_slots": 30,
+    "total_bond_targets": 57
+  },
+  "model_dir": "/net/scratch/p36728ah/CSF3_DATASET/MinMax_scaling/side_chain_dataset_copy3/side_chain_dataset_copy2/side_chain_dataset/model_artifacts",
+  "best_weights_path": "/net/scratch/p36728ah/CSF3_DATASET/MinMax_scaling/side_chain_dataset_copy3/side_chain_dataset_copy2/side_chain_dataset/model_artifacts/SINGLE_BASE_bond_best.weights.h5",
+  "final_weights_path": "/net/scratch/p36728ah/CSF3_DATASET/MinMax_scaling/side_chain_dataset_copy3/side_chain_dataset_copy2/side_chain_dataset/model_artifacts/SINGLE_BASE_bond_final.weights.h5",
+  "portable_model_path": "/net/scratch/p36728ah/CSF3_DATASET/MinMax_scaling/side_chain_dataset_copy3/side_chain_dataset_copy2/side_chain_dataset/model_artifacts/SINGLE_BASE_bond_portable.keras",
+  "hyperparameters": {
+    "batch_size": 10000,
+    "epochs": 400,
+    "init_lr": 0.0001,
+    "trunk_blocks": 6,
+    "dropout": 0.3,
+    "l2_reg": 1e-05,
+    "cont_len": 36,
+    "residue_col": 36,
+    "bead_col": 37,
+    "residue_offset": 0,
+    "num_res_types": 19,
+    "max_beads": 4,
+    "bond_weight_start": 0.0,
+    "bond_weight_target": 0.2,
+    "coord_only_epochs": 20,
+    "bond_ramp_epochs": 40,
+    "bond_scale": 7.0,
+    "bond_eps": 1e-08
+  }
+}
