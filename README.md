@@ -91,8 +91,7 @@ For one CG PDB file with any filename:
 ```bash
 bash /absolute/path/to/backbone/BackMapNet.sh \
   --pdb-name IgE \
-  --cg-pdb-file /data/pdb_CG/IgE_cg.pdb \
-  --pdb-output-dir pdb_frames_IgE
+  --cg-pdb-file /data/pdb_CG/IgE_cg.pdb
 ```
 
 The single-file CG-only command does not require you to rename the input to `CG_frame_0.pdb`; BackMapNet creates that temporary staged name automatically. PDB export is enabled by default, so `--pdb-output-dir` only changes where the final PDB is written.
