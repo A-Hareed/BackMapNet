@@ -15,12 +15,14 @@ from metric_function_BB import make_custom_objects, resolve_prior_path
 from final_model_activation_test import build_1d_conv_autoencoder_multi_input
 
 
-raw_args = [a for a in sys.argv[1:] if a not in ("--cg-only", "--load-full-model")]
+raw_args = [a for a in sys.argv[1:] if a not in ("--cg-only", "--load-full-model", "--no-bulk-predict")]
 cg_only = "--cg-only" in sys.argv[1:]
 load_full_model = "--load-full-model" in sys.argv[1:]
+bulk_predict = "--no-bulk-predict" not in sys.argv[1:]
 
 batch_size = 5000
 json_weights_path = None
+bulk_output_prefix = None
 filtered_args = []
 i = 0
 while i < len(raw_args):
@@ -34,6 +36,11 @@ while i < len(raw_args):
             raise SystemExit("Missing value after --json-weights")
         json_weights_path = raw_args[i + 1]
         i += 2
+    elif raw_args[i] == "--bulk-output-prefix":
+        if i + 1 >= len(raw_args):
+            raise SystemExit("Missing value after --bulk-output-prefix")
+        bulk_output_prefix = raw_args[i + 1]
+        i += 2
     else:
         filtered_args.append(raw_args[i])
         i += 1
@@ -41,7 +48,8 @@ while i < len(raw_args):
 if len(filtered_args) < 3:
     raise SystemExit(
         "Usage: python evaluate3.py <pdb_name> <chain_num|ALL> <model_path> "
-        "[--cg-only] [--batch-size N] [--load-full-model] [--json-weights <path>]"
+        "[--cg-only] [--batch-size N] [--load-full-model] [--json-weights <path>] "
+        "[--no-bulk-predict] [--bulk-output-prefix <prefix>]"
     )
 
 pdb = filtered_args[0]
@@ -51,6 +59,7 @@ if batch_size <= 0:
     raise SystemExit("--batch-size must be a positive integer")
 print("chain selector:", chain_selector)
 print("batch size:", batch_size)
+print("bulk prediction:", "enabled" if bulk_predict else "disabled")
 
 #boxsize = np.array([22.50000,  22.50000,  22.50000]) *10
 
@@ -330,6 +339,8 @@ if not cg_only:
             metrics=[CoordRMSE(name='coord_rmse'),rama_penalty,normalized_coord_mse,frac_metric],
         )
 
+prediction_jobs = []
+
 for chain_num in chains_to_run:
     print("processing chain:", chain_num)
     pattern = f"train_feat_B*_{pdb}_chain{chain_num}.npy"
@@ -358,38 +369,121 @@ for chain_num in chains_to_run:
 
     do_evaluate = (not cg_only) and len(frames_with_labels) > 0
     for i in frame_indices:
-        feat_arr = np.load(
-            f'train_feat_B{i}_{pdb}_chain{chain_num}.npy',
-            mmap_mode="r",
-        )
-        range_arr = np.load(
-            f'custom_range_B{i}_{pdb}_chain{chain_num}.npy',
-            mmap_mode="r",
-        )
-        lab_arr = None
+        feat_path = f"train_feat_B{i}_{pdb}_chain{chain_num}.npy"
+        range_path = f"custom_range_B{i}_{pdb}_chain{chain_num}.npy"
+        lab_path = f"train_LAB_B{i}_{pdb}_chain{chain_num}.npy"
+
         if do_evaluate and i in frames_with_labels:
-            lab_arr = np.load(
-                f'train_LAB_B{i}_{pdb}_chain{chain_num}.npy',
-                mmap_mode="r",
-            )
+            feat_arr = np.load(feat_path, mmap_mode="r")
+            range_arr = np.load(range_path, mmap_mode="r")
+            lab_arr = np.load(lab_path, mmap_mode="r")
             refinement_model_multi_input.evaluate(
                 [feat_arr, range_arr],
                 lab_arr,
                 verbose=1,
                 batch_size=batch_size,
             )
+            del feat_arr
+            del range_arr
+            del lab_arr
+            gc.collect()
+
+        prediction_jobs.append(
+            {
+                "frame": i,
+                "chain": chain_num,
+                "feat_path": feat_path,
+                "range_path": range_path,
+                "out_path": f"RAMAPROIR_yhat_frame_{i}_chain_{chain_num}.npy",
+            }
+        )
+
+if not prediction_jobs:
+    raise FileNotFoundError("No prediction jobs were created.")
+
+if bulk_output_prefix is None:
+    bulk_output_prefix = f"RAMAPROIR_yhat_bulk_{pdb}"
+
+if bulk_predict:
+    print(f"Bulk prediction inputs: {len(prediction_jobs)} frame/chain job(s)")
+    feat_parts = []
+    range_parts = []
+    frames = []
+    chains = []
+    starts = []
+    stops = []
+    cursor = 0
+
+    for job in prediction_jobs:
+        feat_arr = np.load(job["feat_path"], mmap_mode="r")
+        range_arr = np.load(job["range_path"], mmap_mode="r")
+        rows = int(feat_arr.shape[0])
+        if rows != int(range_arr.shape[0]):
+            raise ValueError(
+                f"Row mismatch for frame={job['frame']} chain={job['chain']}: "
+                f"feat={feat_arr.shape}, range={range_arr.shape}"
+            )
+
+        starts.append(cursor)
+        cursor += rows
+        stops.append(cursor)
+        frames.append(job["frame"])
+        chains.append(job["chain"])
+        feat_parts.append(np.asarray(feat_arr, dtype=np.float32))
+        range_parts.append(np.asarray(range_arr, dtype=np.float32))
+
+    feat_bulk = np.concatenate(feat_parts, axis=0)
+    range_bulk = np.concatenate(range_parts, axis=0)
+    print("Bulk feature shape:", feat_bulk.shape)
+    print("Bulk range shape:", range_bulk.shape)
+    print("Bulk batch size:", batch_size)
+
+    yhat_bulk = refinement_model_multi_input.predict(
+        [feat_bulk, range_bulk],
+        verbose=2,
+        batch_size=batch_size,
+    )
+    yhat_bulk = yhat_bulk[:, :384].astype(np.float64, copy=False)
+    np.save(f"{bulk_output_prefix}.npy", yhat_bulk)
+    np.savez_compressed(
+        f"{bulk_output_prefix}_index.npz",
+        frames=np.asarray(frames, dtype=np.int32),
+        chains=np.asarray(chains, dtype=np.int32),
+        starts=np.asarray(starts, dtype=np.int64),
+        stops=np.asarray(stops, dtype=np.int64),
+        batch_size=np.asarray([batch_size], dtype=np.int32),
+    )
+    print("Saved bulk prediction:", f"{bulk_output_prefix}.npy", yhat_bulk.shape)
+    print("Saved bulk index:", f"{bulk_output_prefix}_index.npz")
+
+    for job, start, stop in zip(prediction_jobs, starts, stops):
+        np.save(job["out_path"], yhat_bulk[start:stop])
+        print(
+            "Saved split prediction:",
+            job["out_path"],
+            yhat_bulk[start:stop].shape,
+        )
+
+    del yhat_bulk
+    del feat_bulk
+    del range_bulk
+    del feat_parts
+    del range_parts
+    gc.collect()
+else:
+    for job in prediction_jobs:
+        feat_arr = np.load(job["feat_path"], mmap_mode="r")
+        range_arr = np.load(job["range_path"], mmap_mode="r")
         yhat = refinement_model_multi_input.predict(
             [feat_arr, range_arr],
             verbose=2,
             batch_size=batch_size,
         )
         yhat = yhat[:, :384].astype(np.float64, copy=False)
-        np.save(f'RAMAPROIR_yhat_frame_{i}_chain_{chain_num}.npy', yhat)
+        np.save(job["out_path"], yhat)
         del yhat
         del feat_arr
         del range_arr
-        if lab_arr is not None:
-            del lab_arr
         gc.collect()
 
 exit()

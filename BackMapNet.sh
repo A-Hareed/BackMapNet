@@ -78,7 +78,7 @@ Side-chain options:
                                 Optional model_40 manifest via SIDECHAIN_MODEL40_MANIFEST
 
 PDB export options:
-  --write-pdb <0|1>             Write PDB frame(s) from reconstructed combined array (default: 0)
+  --write-pdb <0|1>             Write PDB frame(s) from reconstructed combined array (default: 1)
   --pdb-output-dir <dir>        Output directory for PDB files (default: pdb_frames_<pdb_name>)
   --pdb-frame-spec <spec>       all, single index (5), range (0-99), or list (0,5,10) (default: all)
   --pdb-filename-template <t>   Filename template, e.g. frame_BackMapNet_V3_{frame}.pdb
@@ -117,7 +117,7 @@ AA_PDB_DIR=""
 RUN_SIDECHAIN="1"
 AA_SC_PDB_DIR=""
 SC_CLUSTER_ID="2"
-WRITE_PDB="0"
+WRITE_PDB="1"
 PDB_OUTPUT_DIR=""
 PDB_FRAME_SPEC="all"
 PDB_FILENAME_TEMPLATE="frame_BackMapNet_V3_{frame}.pdb"

@@ -58,11 +58,14 @@ Top-level structure:
 - `weights/`: backbone/side-chain model files and priors.
 
 ## Input Conventions
-BackMapNet expects frame-indexed PDB filenames:
+BackMapNet supports either frame-indexed CG directories or one single CG PDB file:
 
-- CG directory (`--cg-pdb-dir`): `CG_frame_<idx>.pdb`
+- CG directory (`--cg-pdb-dir`): contains frame-indexed files named `CG_frame_<idx>.pdb`
+- Single CG PDB (`--cg-pdb-file`): accepts any existing PDB filename, for example `12as_cg.pdb`
 - Backbone AA directory (`--aa-pdb-dir`, optional): `frame_<idx>.pdb`
 - Side-chain AA directory (`--aa-sc-pdb-dir`, required when full side-chain mode is used): `frame_<idx>_SC.pdb`
+
+When `--cg-pdb-file` is used, BackMapNet internally stages that file as `CG_frame_0.pdb` in a temporary directory, so the rest of the pipeline still uses the same frame-indexed logic. In this mode, `--frame-range` must be `auto` or `0`.
 
 If `--aa-pdb-dir` is provided, BackMapNet automatically switches from CG-only mode to full mode.
 
@@ -74,12 +77,25 @@ bash /absolute/path/to/backbone/BackMapNet.sh --help
 ```
 
 ### CG-only mode (default)
+For a directory of frame-indexed CG PDBs:
+
 ```bash
 bash /absolute/path/to/backbone/BackMapNet.sh \
   --pdb-name IgE \
   --cg-pdb-dir /data/IgE/cg \
   --jobs 8
 ```
+
+For one CG PDB file with any filename:
+
+```bash
+bash /absolute/path/to/backbone/BackMapNet.sh \
+  --pdb-name IgE \
+  --cg-pdb-file /data/pdb_CG/IgE_cg.pdb \
+  --pdb-output-dir pdb_frames_IgE
+```
+
+The single-file CG-only command does not require you to rename the input to `CG_frame_0.pdb`; BackMapNet creates that temporary staged name automatically. PDB export is enabled by default, so `--pdb-output-dir` only changes where the final PDB is written.
 
 ### Full mode (backbone + side-chain targets) Evaluation 
 ```bash
@@ -91,14 +107,17 @@ bash /absolute/path/to/backbone/BackMapNet.sh \
   --jobs 8
 ```
 
-### Optional PDB export
+### PDB export
+PDB export is enabled by default. If `--pdb-output-dir` is omitted, files are written to `pdb_frames_<PDB>`.
+
 ```bash
 bash /absolute/path/to/backbone/BackMapNet.sh \
   --pdb-name IgE \
   --cg-pdb-dir /data/IgE/cg \
-  --write-pdb 1 \
   --pdb-frame-spec all
 ```
+
+To skip PDB writing and only keep NumPy arrays, pass `--write-pdb 0`.
 
 ## Output Files
 Typical outputs are generated in the run directory:
@@ -108,7 +127,7 @@ Typical outputs are generated in the run directory:
 - `sidechain_<PDB>_prediction.npy`
 - `combined_<PDB>_prediction.npy` (CG-only)
 - `combined_<PDB>_actual.npy` (full mode)
-- `pdb_frames_<PDB>/` (when `--write-pdb 1`)
+- `pdb_frames_<PDB>/` (default PDB output directory)
 
 ## Atomic Mapping Specification
 This section defines the atom ordering used by reconstruction and PDB writing.
@@ -156,6 +175,4 @@ In `combined_<PDB>_*.npy`, each residue is assembled as:
 ## License
 This project is licensed under the MIT License.
 You may use, copy, modify, merge, publish, distribute, sublicense, and/or sell this software, provided the copyright notice and license text are included in copies or substantial portions.
-
-
 
